@@ -14,13 +14,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -138,7 +144,7 @@ fun CameraCoachScreen(
                 }
 
                 override fun onError(error: String) {
-                    // Vision processing error
+                    // Non-fatal vision detection errors
                 }
             }
         )
@@ -151,51 +157,18 @@ fun CameraCoachScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
-        // CameraX Live Preview
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        // CameraX Live Preview View
         AndroidView(
             factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
+                PreviewView(ctx).apply {
                     scaleType = PreviewView.ScaleType.FILL_CENTER
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 }
-
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
-
-                    val preview = Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
-                    }
-
-                    val imageAnalysis = ImageAnalysis.Builder()
-                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
-
-                    imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
-                        landmarkerHelper.detectLiveStream(imageProxy, uiState.isFrontCamera)
-                    }
-
-                    val cameraSelector = if (uiState.isFrontCamera) {
-                        CameraSelector.DEFAULT_FRONT_CAMERA
-                    } else {
-                        CameraSelector.DEFAULT_BACK_CAMERA
-                    }
-
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            cameraSelector,
-                            preview,
-                            imageAnalysis
-                        )
-                    } catch (e: Exception) {
-                        // camera binding error
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-
-                previewView
             },
             update = { previewView ->
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(previewView.context)
@@ -244,7 +217,7 @@ fun CameraCoachScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Top HUD Controls
+        // Top HUD Controls with statusBarsPadding
         TopCoachHud(
             selectedDrill = uiState.selectedDrill,
             isFrontCamera = uiState.isFrontCamera,
@@ -268,7 +241,7 @@ fun CameraCoachScreen(
                 .fillMaxWidth()
         )
 
-        // Bottom HUD Coaching Banner & Telemetry
+        // Bottom HUD Coaching Banner & Telemetry with navigationBarsPadding
         BottomCoachHud(
             feedback = uiState.kinematicFeedback,
             inferenceTimeMs = uiState.inferenceTimeMs,
@@ -333,6 +306,7 @@ fun CameraCoachScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TopCoachHud(
     selectedDrill: DrillType,
@@ -349,9 +323,12 @@ private fun TopCoachHud(
 ) {
     Column(
         modifier = modifier
-            .background(Color.Black.copy(alpha = 0.5f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(Color.Black.copy(alpha = 0.55f))
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        // Top Row: Close | Score Pill | Action Cluster
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -383,8 +360,9 @@ private fun TopCoachHud(
                 border = BorderStroke(1.5.dp, scoreColor)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -392,11 +370,11 @@ private fun TopCoachHud(
                             .clip(CircleShape)
                             .background(scoreColor)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Score: $formScore",
                         style = MaterialTheme.typography.titleMedium,
-                        color = TextWhite
+                        color = TextWhite,
+                        maxLines = 1
                     )
                 }
             }
@@ -404,7 +382,7 @@ private fun TopCoachHud(
             // Quick Control Actions
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Language Switcher
                 Surface(
@@ -416,7 +394,7 @@ private fun TopCoachHud(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
                         Text(
                             text = when (language) {
@@ -462,12 +440,11 @@ private fun TopCoachHud(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Drill Selector Chips
-        Row(
+        // Drill Selector Chips with FlowRow
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DrillType.entries.forEach { drill ->
                 val isSelected = drill == selectedDrill
@@ -489,8 +466,7 @@ private fun TopCoachHud(
                     border = BorderStroke(
                         width = 1.dp,
                         color = if (isSelected) ElectricEmerald else Color.Transparent
-                    ),
-                    modifier = Modifier.weight(1f)
+                    )
                 )
             }
         }
@@ -512,7 +488,8 @@ private fun BottomCoachHud(
 ) {
     Column(
         modifier = modifier
-            .background(Color.Black.copy(alpha = 0.65f))
+            .background(Color.Black.copy(alpha = 0.70f))
+            .navigationBarsPadding()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -526,7 +503,7 @@ private fun BottomCoachHud(
             Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -535,14 +512,14 @@ private fun BottomCoachHud(
                         color = if (feedback.isGoodForm) ElectricEmerald else WarmAmber,
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Surface(
                         color = if (isVoiceMuted) TextMuted.copy(alpha = 0.15f) else ElectricEmerald.copy(alpha = 0.15f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 imageVector = if (isVoiceMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
@@ -550,7 +527,6 @@ private fun BottomCoachHud(
                                 tint = if (isVoiceMuted) TextMuted else ElectricEmerald,
                                 modifier = Modifier.size(12.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = if (isVoiceMuted) {
                                     BilingualStrings.getVoiceCoachMuted(language)
@@ -558,7 +534,8 @@ private fun BottomCoachHud(
                                     BilingualStrings.getVoiceCoachActive(language)
                                 },
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if (isVoiceMuted) TextMuted else ElectricEmerald
+                                color = if (isVoiceMuted) TextMuted else ElectricEmerald,
+                                maxLines = 1
                             )
                         }
                     }
@@ -608,7 +585,7 @@ private fun BottomCoachHud(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .heightIn(min = 50.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
@@ -636,7 +613,7 @@ private fun BottomCoachHud(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .heightIn(min = 50.dp)
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
@@ -679,12 +656,15 @@ private fun TelemetryChip(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextMuted
+                color = TextMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleSmall,
-                color = TextWhite
+                color = TextWhite,
+                maxLines = 1
             )
         }
     }
@@ -701,6 +681,8 @@ private fun CameraPermissionFallback(
         modifier = modifier
             .fillMaxSize()
             .background(DeepNavy)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -743,7 +725,10 @@ private fun CameraPermissionFallback(
                         containerColor = ElectricEmerald,
                         contentColor = DeepNavy
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) {
                     Text(if (language == Language.TAMIL) "அனுமதி வழங்கவும்" else "Grant Camera Access")
                 }
@@ -754,7 +739,10 @@ private fun CameraPermissionFallback(
                         containerColor = Color.Transparent,
                         contentColor = TextMuted
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) {
                     Text(if (language == Language.TAMIL) "பின்செல்ல" else "Cancel")
                 }

@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
@@ -42,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.kinematics.DrillType
 import com.athlens.app.domain.model.AthleteProfile
@@ -61,6 +64,7 @@ import com.athlens.app.ui.theme.WarmAmber
 import com.athlens.app.ui.util.BilingualStrings
 import com.athlens.app.ui.util.DateUtils
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TrainTab(
     profile: AthleteProfile?,
@@ -93,14 +97,16 @@ fun TrainTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = BilingualStrings.getGreeting(language, athleteName),
                             style = MaterialTheme.typography.headlineSmall,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -122,6 +128,8 @@ fun TrainTab(
                             text = "$sportLabel • $positionLabel",
                             style = MaterialTheme.typography.labelSmall,
                             color = ElectricEmerald,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
@@ -172,21 +180,26 @@ fun TrainTab(
                 // Header badge
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Camera Coach",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(28.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = BilingualStrings.getCameraCoachTitle(language),
                             style = MaterialTheme.typography.titleLarge,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -228,9 +241,10 @@ fun TrainTab(
                     color = ElectricEmerald
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     DrillType.entries.forEach { drill ->
                         val isSelected = drill == selectedDrill
@@ -252,8 +266,7 @@ fun TrainTab(
                             border = BorderStroke(
                                 width = 1.dp,
                                 color = if (isSelected) ElectricEmerald else Color.Transparent
-                            ),
-                            modifier = Modifier.weight(1f)
+                            )
                         )
                     }
                 }
@@ -270,7 +283,7 @@ fun TrainTab(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .heightIn(min = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
@@ -355,6 +368,9 @@ fun TrainTab(
                 }
             }
         }
+
+        // Bottom space so last card never collides with navigation bar
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -378,11 +394,12 @@ private fun SessionItemCard(
         Row(
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.FitnessCenter,
@@ -390,18 +407,21 @@ private fun SessionItemCard(
                     tint = scoreColor,
                     modifier = Modifier.size(24.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = session.drillName,
                         style = MaterialTheme.typography.titleSmall,
-                        color = TextWhite
+                        color = TextWhite,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = DateUtils.formatDateTime(session.timestamp),
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextMuted
+                        color = TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -416,7 +436,8 @@ private fun SessionItemCard(
                     text = "$score / 100",
                     style = MaterialTheme.typography.labelMedium,
                     color = scoreColor,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    maxLines = 1
                 )
             }
         }

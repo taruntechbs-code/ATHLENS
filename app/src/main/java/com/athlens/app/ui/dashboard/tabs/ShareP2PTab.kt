@@ -5,24 +5,23 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,7 +39,6 @@ import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -63,9 +61,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.athlens.app.data.local.entity.ReceivedPassportEntity
 import com.athlens.app.data.p2p.DiscoveredEndpoint
@@ -84,13 +84,13 @@ import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
 import com.athlens.app.ui.theme.WarmAmber
 import com.athlens.app.ui.util.BilingualStrings
-import com.athlens.app.ui.util.DateUtils
 
 enum class P2PMode {
     SEND,
     RECEIVE
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShareP2PTab(
     profile: AthleteProfile?,
@@ -145,7 +145,7 @@ fun ShareP2PTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top Mode Switcher (Send Passport vs Receive Scout)
+        // Top Mode Switcher (Send Passport vs Receive Scout) with generous vertical padding
         Surface(
             color = CardNavy,
             shape = RoundedCornerShape(14.dp),
@@ -155,8 +155,8 @@ fun ShareP2PTab(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Surface(
                     color = if (selectedMode == P2PMode.SEND) ElectricEmeraldDark else DeepNavy,
@@ -173,13 +173,15 @@ fun ShareP2PTab(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)
                     ) {
                         Text(
                             text = BilingualStrings.getSendPassportTab(language),
                             style = MaterialTheme.typography.titleSmall,
                             color = if (selectedMode == P2PMode.SEND) TextWhite else TextMuted,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -199,13 +201,15 @@ fun ShareP2PTab(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)
                     ) {
                         Text(
                             text = BilingualStrings.getReceiveScoutTab(language),
                             style = MaterialTheme.typography.titleSmall,
                             color = if (selectedMode == P2PMode.RECEIVE) TextWhite else TextMuted,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -226,31 +230,45 @@ fun ShareP2PTab(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Badge,
                                 contentDescription = null,
                                 tint = ElectricEmerald,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(22.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "ATHLETE TALENT PASSPORT",
+                                text = when (language) {
+                                    Language.ENGLISH -> "TALENT PASSPORT"
+                                    Language.TAMIL -> "திறமை பாஸ்போர்ட்"
+                                    Language.HINDI -> "टैलेंट पासपोर्ट"
+                                },
                                 style = MaterialTheme.typography.titleMedium,
-                                color = ElectricEmerald
+                                color = ElectricEmerald,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
+
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         val shortId = profile?.id?.take(8)?.uppercase() ?: "NEW"
                         Surface(
                             color = DeepNavy,
-                            shape = RoundedCornerShape(6.dp)
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, CardNavyElevated)
                         ) {
                             Text(
-                                text = "ID: ATH-$shortId",
+                                text = "#$shortId",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = TextWhite,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                softWrap = false,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
                     }
@@ -261,12 +279,15 @@ fun ShareP2PTab(
                         text = profile?.fullName ?: "Grassroots Athlete",
                         style = MaterialTheme.typography.headlineSmall,
                         color = TextWhite,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
-                    Row(
-                        modifier = Modifier.padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    FlowRow(
+                        modifier = Modifier.padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Surface(
                             color = ElectricEmeraldDark,
@@ -346,14 +367,16 @@ fun ShareP2PTab(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
                                     contentDescription = null,
                                     tint = TextMuted,
                                     modifier = Modifier.size(14.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "ECDSA P-256 Key",
                                     style = MaterialTheme.typography.labelSmall,
@@ -400,7 +423,9 @@ fun ShareP2PTab(
                                 onClick = onStopSharing,
                                 colors = ButtonDefaults.buttonColors(containerColor = CrimsonAlert),
                                 shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 48.dp)
                             ) {
                                 Icon(imageVector = Icons.Default.Stop, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -429,7 +454,9 @@ fun ShareP2PTab(
                                     contentColor = DeepNavy
                                 ),
                                 shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 48.dp)
                             ) {
                                 Text("Share with Another Scout")
                             }
@@ -448,7 +475,9 @@ fun ShareP2PTab(
                                     contentColor = DeepNavy
                                 ),
                                 shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 48.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.WifiTethering,
@@ -491,7 +520,9 @@ fun ShareP2PTab(
                         contentColor = DeepNavy
                     ),
                     shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 46.dp)
                 ) {
                     Icon(
                         imageVector = if (p2pState == P2PExchangeState.DISCOVERING) Icons.Default.Stop else Icons.Default.Radar,
@@ -506,7 +537,9 @@ fun ShareP2PTab(
                             BilingualStrings.getScanNearbyButton(language)
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -516,7 +549,9 @@ fun ShareP2PTab(
                     border = BorderStroke(1.dp, ElectricEmerald),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = ElectricEmerald),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 46.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.QrCodeScanner,
@@ -527,7 +562,9 @@ fun ShareP2PTab(
                     Text(
                         text = BilingualStrings.getScanQrButton(language),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -545,14 +582,16 @@ fun ShareP2PTab(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Devices,
                                     contentDescription = null,
                                     tint = ElectricEmerald,
                                     modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = BilingualStrings.getDiscoveredAthletesTitle(language),
                                     style = MaterialTheme.typography.titleSmall,
@@ -587,14 +626,17 @@ fun ShareP2PTab(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(12.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
                                                 text = endpoint.name,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = TextWhite,
-                                                fontWeight = FontWeight.SemiBold
+                                                fontWeight = FontWeight.SemiBold,
+                                                modifier = Modifier.weight(1f),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                             Button(
                                                 onClick = { onConnectEndpoint(endpoint.id) },
@@ -627,21 +669,26 @@ fun ShareP2PTab(
                 Column(modifier = Modifier.padding(18.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Inbox,
                                 contentDescription = null,
                                 tint = ElectricEmerald,
                                 modifier = Modifier.size(22.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = BilingualStrings.getScoutInboxTitle(language),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = TextWhite
+                                color = TextWhite,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
 
@@ -698,12 +745,13 @@ fun ShareP2PTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
                         imageVector = if (unsyncedCount > 0) Icons.Default.CloudSync else Icons.Default.CloudDone,
@@ -711,13 +759,14 @@ fun ShareP2PTab(
                         tint = if (unsyncedCount > 0) WarmAmber else ElectricEmerald,
                         modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = BilingualStrings.getCloudSyncTitle(language),
                             style = MaterialTheme.typography.titleSmall,
                             color = TextWhite,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = if (unsyncedCount > 0) {
@@ -726,7 +775,9 @@ fun ShareP2PTab(
                                 BilingualStrings.getAllSyncedLabel(language)
                             },
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (unsyncedCount > 0) WarmAmber else ElectricEmerald
+                            color = if (unsyncedCount > 0) WarmAmber else ElectricEmerald,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -740,7 +791,8 @@ fun ShareP2PTab(
                         containerColor = if (unsyncedCount > 0) WarmAmber else CardNavyElevated,
                         contentColor = if (unsyncedCount > 0) DeepNavy else TextWhite
                     ),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.heightIn(min = 40.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Sync,
@@ -756,6 +808,9 @@ fun ShareP2PTab(
                 }
             }
         }
+
+        // Bottom space so last card never collides with navigation bar
+        Spacer(modifier = Modifier.height(24.dp))
     }
 
     // Minor Guardian / P2P Sharing Consent Dialog
@@ -812,6 +867,7 @@ fun ShareP2PTab(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReceivedPassportCard(
     passport: ReceivedPassportEntity,
@@ -827,20 +883,24 @@ private fun ReceivedPassportCard(
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = passport.athleteName,
                         style = MaterialTheme.typography.titleMedium,
                         color = TextWhite,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "${passport.district} • ${passport.sport} (${passport.playingPosition})",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextGray
+                        color = TextGray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -859,11 +919,11 @@ private fun ReceivedPassportCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Badges row: Transfer Method + Verification Badge
-            Row(
+            // Badges row: Transfer Method + Verification Badge using FlowRow
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Surface(
                     color = CardNavyElevated,
@@ -884,7 +944,8 @@ private fun ReceivedPassportCard(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
                             imageVector = if (passport.signatureVerified) Icons.Default.CheckCircle else Icons.Default.Error,
@@ -892,7 +953,6 @@ private fun ReceivedPassportCard(
                             tint = if (passport.signatureVerified) ElectricEmerald else CrimsonAlert,
                             modifier = Modifier.size(12.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (passport.signatureVerified) {
                                 BilingualStrings.getEcdsaVerifiedBadge(language)
@@ -912,13 +972,18 @@ private fun ReceivedPassportCard(
             // Telemetry & Key details
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Score: ${passport.avgFormScore}/100 • RAE: ${passport.raeQuarter}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted
+                    color = TextMuted,
+                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Key: ${passport.publicKeyFingerprint}",
                     style = MaterialTheme.typography.labelSmall,

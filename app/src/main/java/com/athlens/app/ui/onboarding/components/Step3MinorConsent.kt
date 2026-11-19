@@ -1,7 +1,6 @@
 package com.athlens.app.ui.onboarding.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,6 @@ import com.athlens.app.domain.model.Language
 import com.athlens.app.ui.theme.BorderDark
 import com.athlens.app.ui.theme.CardNavy
 import com.athlens.app.ui.theme.CardNavyElevated
-import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
@@ -79,15 +77,17 @@ fun Step3MinorConsent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Shield,
                             contentDescription = "Minor Protection",
                             tint = WarmAmber,
                             modifier = Modifier.size(28.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = when (language) {
                                     Language.ENGLISH -> "Minor Athlete Protection Notice (Age $calculatedAge)"
@@ -156,7 +156,8 @@ fun Step3MinorConsent(
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Checkbox(
                         checked = guardianConsentGiven,
@@ -164,10 +165,9 @@ fun Step3MinorConsent(
                         colors = CheckboxDefaults.colors(
                             checkedColor = ElectricEmerald,
                             uncheckedColor = WarmAmber,
-                            checkmarkColor = DeepNavy
+                            checkmarkColor = com.athlens.app.ui.theme.DeepNavy
                         )
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = when (language) {
                             Language.ENGLISH -> "I confirm I am the legal guardian and grant full authorization for sports passport & training telemetry processing."
@@ -175,7 +175,8 @@ fun Step3MinorConsent(
                             Language.HINDI -> "मैं पुष्टि करता/करती हूँ कि मैं इस खिलाड़ी का कानूनी अभिभावक हूँ और स्पोर्ट्स पासपोर्ट व प्रशिक्षण टेलीमेट्री के लिए पूर्ण सहमति देता/देती हूँ।"
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (guardianConsentGiven) TextWhite else TextGray
+                        color = if (guardianConsentGiven) TextWhite else TextGray,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -187,15 +188,17 @@ fun Step3MinorConsent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Adult Athlete",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(32.dp)
                         )
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = when (language) {
                                     Language.ENGLISH -> "Adult Athlete (Age $calculatedAge)"

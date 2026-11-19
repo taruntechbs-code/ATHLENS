@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.model.Language
@@ -55,11 +56,11 @@ import com.athlens.app.ui.theme.TextWhite
 import com.athlens.app.ui.theme.WarmAmber
 import com.athlens.app.ui.util.BilingualStrings
 import com.athlens.app.ui.util.DateUtils
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Step2ProfileDetails(
     language: Language,
@@ -164,16 +165,19 @@ fun Step2ProfileDetails(
                         }
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f, fill = false),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.CalendarMonth,
                             contentDescription = "Select DOB",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = DateUtils.formatDate(dateOfBirthMillis),
                             style = MaterialTheme.typography.bodyLarge,
@@ -301,7 +305,7 @@ fun Step2ProfileDetails(
             }
         }
 
-        // Playing Position Selector
+        // Playing Position Selector with FlowRow
         Column {
             Text(
                 text = BilingualStrings.getPositionLabel(language),
@@ -309,9 +313,10 @@ fun Step2ProfileDetails(
                 color = ElectricEmerald
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val availablePositions = PlayingPosition.positionsFor(selectedSport)
                 availablePositions.forEach { pos ->
@@ -334,8 +339,7 @@ fun Step2ProfileDetails(
                         border = BorderStroke(
                             1.dp,
                             if (isSelected) ElectricEmerald else BorderDark
-                        ),
-                        modifier = Modifier.weight(1f)
+                        )
                     )
                 }
             }

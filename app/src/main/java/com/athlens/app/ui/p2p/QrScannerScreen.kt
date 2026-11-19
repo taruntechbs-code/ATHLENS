@@ -9,7 +9,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,18 +19,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,11 +45,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -64,11 +60,9 @@ import com.athlens.app.ui.theme.CardNavy
 import com.athlens.app.ui.theme.CrimsonAlert
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
-import com.athlens.app.ui.theme.ElectricEmeraldDark
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
-import com.athlens.app.ui.util.BilingualStrings
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
@@ -153,64 +147,63 @@ fun QrScannerScreen(
                         val width = imageProxy.width
                         val height = imageProxy.height
 
-                        val source = PlanarYUVLuminanceSource(
-                            data, width, height, 0, 0, width, height, false
-                        )
-                        val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
-
                         try {
-                            val rawResult = reader.decodeWithState(binaryBitmap)
-                            val text = rawResult.text
-                            Log.d("QrScannerScreen", "Decoded QR string: ${text.take(60)}...")
+                            val source = PlanarYUVLuminanceSource(
+                                data, width, height,
+                                0, 0, width, height, false
+                            )
+                            val bitmap = BinaryBitmap(HybridBinarizer(source))
+                            val result = reader.decodeWithState(bitmap)
+                            val qrContent = result.text
 
-                            val envelope = PassportSerializer.parseEnvelope(text)
-                            if (envelope != null) {
-                                hasProcessed = true
-                                val (canonicalJson, signatureBase64, pubKeyBase64) = envelope
-                                val parsedPayload = PassportSerializer.parseCanonicalPayload(canonicalJson)
+                            if (!hasProcessed && qrContent.isNotBlank()) {
+                                val envelope = PassportSerializer.parseEnvelope(qrContent)
 
-                                // 100% Offline Cryptographic Verification
-                                val isValid = passportCryptoManager.verifySignature(
-                                    canonicalJson,
-                                    signatureBase64,
-                                    pubKeyBase64
-                                )
+                                if (envelope != null) {
+                                    hasProcessed = true
+                                    val (canonicalJson, sigBase64, pubKeyBase64) = envelope
+                                    val verified = passportCryptoManager.verifySignature(
+                                        canonicalPayload = canonicalJson,
+                                        signatureBase64 = sigBase64,
+                                        publicKeyBase64 = pubKeyBase64
+                                    )
 
-                                val fingerprint = try {
-                                    val keyBytes = Base64.decode(pubKeyBase64, Base64.NO_WRAP)
-                                    val md = MessageDigest.getInstance("SHA-256")
-                                    val hash = md.digest(keyBytes)
-                                    hash.take(6).joinToString("") { "%02X".format(it) }
-                                } catch (e: Exception) {
-                                    "QR-KEY"
+                                    val hexFingerprint = try {
+                                        val keyBytes = Base64.decode(pubKeyBase64, Base64.NO_WRAP)
+                                        val md = MessageDigest.getInstance("SHA-256")
+                                        val hash = md.digest(keyBytes)
+                                        hash.take(6).joinToString("") { "%02X".format(it) }
+                                    } catch (e: Exception) {
+                                        "QR-KEY"
+                                    }
+                                    val parsedPayload = PassportSerializer.parseCanonicalPayload(canonicalJson)
+
+                                    val entity = ReceivedPassportEntity(
+                                        id = UUID.randomUUID().toString(),
+                                        athleteName = parsedPayload?.fullName ?: "Athlete",
+                                        district = parsedPayload?.district ?: "Coimbatore",
+                                        sport = parsedPayload?.sport ?: "KABADDI",
+                                        playingPosition = parsedPayload?.playingPosition ?: "Raider",
+                                        ageMonths = parsedPayload?.ageMonths ?: 0,
+                                        raeQuarter = parsedPayload?.raeQuarter ?: "Q1",
+                                        totalSessions = parsedPayload?.totalSessions ?: 0,
+                                        avgFormScore = parsedPayload?.avgScore ?: 0,
+                                        verifiedAchievementsCount = parsedPayload?.verifiedAchievements ?: 0,
+                                        signatureVerified = verified,
+                                        publicKeyFingerprint = hexFingerprint,
+                                        transferMethod = "QR_SCAN",
+                                        rawEnvelopeJson = qrContent,
+                                        receivedAt = System.currentTimeMillis(),
+                                        synced = false
+                                    )
+                                    scannedEntity = entity
                                 }
-
-                                val entity = ReceivedPassportEntity(
-                                    id = UUID.randomUUID().toString(),
-                                    athleteName = parsedPayload?.fullName ?: "Verified Athlete",
-                                    district = parsedPayload?.district ?: "Coimbatore",
-                                    sport = parsedPayload?.sport ?: "KABADDI",
-                                    playingPosition = parsedPayload?.playingPosition ?: "Raider",
-                                    ageMonths = parsedPayload?.ageMonths ?: 0,
-                                    raeQuarter = parsedPayload?.raeQuarter ?: "Q1",
-                                    totalSessions = parsedPayload?.totalSessions ?: 0,
-                                    avgFormScore = parsedPayload?.avgScore ?: 0,
-                                    verifiedAchievementsCount = parsedPayload?.verifiedAchievements ?: 0,
-                                    signatureVerified = isValid,
-                                    publicKeyFingerprint = fingerprint,
-                                    transferMethod = "QR_SCAN",
-                                    rawEnvelopeJson = text,
-                                    receivedAt = System.currentTimeMillis(),
-                                    synced = false
-                                )
-
-                                scannedEntity = entity
                             }
                         } catch (e: Exception) {
-                            // No QR code found in current frame
+                            // QR not found in frame, continue
                         } finally {
-                            reader.reset()
                             imageProxy.close()
+                            reader.reset()
                         }
                     }
 
@@ -223,7 +216,7 @@ fun QrScannerScreen(
                             imageAnalysis
                         )
                     } catch (e: Exception) {
-                        Log.e("QrScannerScreen", "Camera bind failed: ${e.message}", e)
+                        Log.e("QrScannerScreen", "Camera bind error", e)
                     }
                 }, ContextCompat.getMainExecutor(ctx))
 
@@ -245,16 +238,20 @@ fun QrScannerScreen(
             )
         }
 
-        // Top Navigation Header
+        // Top Navigation Header with statusBarsPadding
         Surface(
             color = DeepNavy.copy(alpha = 0.85f),
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
@@ -263,8 +260,7 @@ fun QrScannerScreen(
                         tint = TextWhite
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = when (language) {
                             Language.ENGLISH -> "Scout QR Passport Scanner"
@@ -273,23 +269,28 @@ fun QrScannerScreen(
                         },
                         style = MaterialTheme.typography.titleMedium,
                         color = TextWhite,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "100% Offline Biometric & ECDSA Verifier",
                         style = MaterialTheme.typography.labelSmall,
-                        color = ElectricEmerald
+                        color = ElectricEmerald,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
         }
 
-        // Bottom Instruction Card / Feedback Banner
+        // Bottom Instruction Card / Feedback Banner with navigationBarsPadding
         Surface(
             color = DeepNavy.copy(alpha = 0.90f),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, CardNavy)
@@ -300,14 +301,16 @@ fun QrScannerScreen(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Icon(
                             imageVector = if (entity.signatureVerified) Icons.Default.CheckCircle else Icons.Default.Error,
                             contentDescription = null,
                             tint = if (entity.signatureVerified) ElectricEmerald else CrimsonAlert,
                             modifier = Modifier.size(28.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = if (entity.signatureVerified) {
                                 "ECDSA P-256 Validated Offline!"
@@ -316,7 +319,9 @@ fun QrScannerScreen(
                             },
                             style = MaterialTheme.typography.titleMedium,
                             color = if (entity.signatureVerified) ElectricEmerald else CrimsonAlert,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -324,18 +329,23 @@ fun QrScannerScreen(
                     Text(
                         text = "${entity.athleteName} • ${entity.district} (${entity.sport})",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextWhite
+                        color = TextWhite,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Score: ${entity.avgFormScore}/100 • Key: ${entity.publicKeyFingerprint}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextMuted
+                        color = TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             } else {
                 Row(
                     modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.QrCodeScanner,
@@ -343,7 +353,6 @@ fun QrScannerScreen(
                         tint = ElectricEmerald,
                         modifier = Modifier.size(26.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = when (language) {
                             Language.ENGLISH -> "Align athlete's Signed QR Passport inside the target box"
@@ -351,7 +360,8 @@ fun QrScannerScreen(
                             Language.HINDI -> "खिलाड़ी के हस्ताक्षरित क्यूआर पासपोर्ट को बॉक्स के अंदर रखें"
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextGray
+                        color = TextGray,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

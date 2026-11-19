@@ -1,20 +1,23 @@
 package com.athlens.app.ui.onboarding
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -51,7 +54,6 @@ import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextWhite
-import com.athlens.app.ui.theme.WarmAmber
 import com.athlens.app.ui.util.BilingualStrings
 
 @Composable
@@ -113,6 +115,7 @@ fun OnboardingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
@@ -148,6 +151,8 @@ fun OnboardingScreen(
                     onGuardianConsentChanged = { viewModel.setGuardianConsent(it) }
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -160,12 +165,14 @@ private fun OnboardingHeader(
 ) {
     Surface(
         color = DeepNavy,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 8.dp)
+                .padding(top = 16.dp, start = 20.dp, end = 20.dp, bottom = 8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -216,7 +223,9 @@ private fun OnboardingBottomBar(
     Surface(
         color = CardNavy,
         shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
     ) {
         Row(
             modifier = Modifier
@@ -231,7 +240,9 @@ private fun OnboardingBottomBar(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = TextWhite
                     ),
-                    border = BorderStroke(1.dp, BorderDark)
+                    border = BorderStroke(1.dp, BorderDark),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.heightIn(min = 44.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -253,7 +264,9 @@ private fun OnboardingBottomBar(
                     contentColor = DeepNavy,
                     disabledContainerColor = BorderDark,
                     disabledContentColor = TextGray
-                )
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.heightIn(min = 44.dp)
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(

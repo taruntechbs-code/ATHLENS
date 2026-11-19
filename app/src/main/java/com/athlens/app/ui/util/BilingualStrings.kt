@@ -417,9 +417,9 @@ object BilingualStrings {
     }
 
     fun getAddWaterButton(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "+250 ml Glass"
-        Language.TAMIL -> "+250 மி.லி டம்ளர்"
-        Language.HINDI -> "+250 मिली ग्लास"
+        Language.ENGLISH -> "250 ml Glass"
+        Language.TAMIL -> "250 மி.லி"
+        Language.HINDI -> "250 मिली"
     }
 
     fun getResetHydration(lang: Language): String = when (lang) {
@@ -466,9 +466,9 @@ object BilingualStrings {
     }
 
     fun getAddAchievementButton(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "+ Add Achievement"
-        Language.TAMIL -> "+ சாதனை சேர்"
-        Language.HINDI -> "+ उपलब्धि जोड़ें"
+        Language.ENGLISH -> "Add Achievement"
+        Language.TAMIL -> "சாதனை சேர்"
+        Language.HINDI -> "उपलब्धि जोड़ें"
     }
 
     fun getNoAchievementsYet(lang: Language): String = when (lang) {
@@ -606,14 +606,14 @@ object BilingualStrings {
     // Phase 6: P2P Exchange, Scout Inbox & WorkManager Sync Strings
     fun getSendPassportTab(lang: Language): String = when (lang) {
         Language.ENGLISH -> "Send Passport"
-        Language.TAMIL -> "பாஸ்போர்ட் அனுப்பு"
+        Language.TAMIL -> "அனுப்பு (பாஸ்போர்ட்)"
         Language.HINDI -> "पासपोर्ट भेजें"
     }
 
     fun getReceiveScoutTab(lang: Language): String = when (lang) {
         Language.ENGLISH -> "Receive (Scout)"
-        Language.TAMIL -> "பெறு (சாரணர்)"
-        Language.HINDI -> "प्राप्त करें (स्काउट)"
+        Language.TAMIL -> "பெறு (ஸ்கவுட்)"
+        Language.HINDI -> "प्राप्त (स्काउट)"
     }
 
     fun getShareOfflineButton(lang: Language): String = when (lang) {
@@ -659,15 +659,15 @@ object BilingualStrings {
     }
 
     fun getScanNearbyButton(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "Scan Nearby Athletes (P2P)"
-        Language.TAMIL -> "அருகிலுள்ள வீரர்களை ஸ்கேன் செய் (P2P)"
-        Language.HINDI -> "निकटवर्ती खिलाड़ियों को खोजें (P2P)"
+        Language.ENGLISH -> "Scan Nearby (P2P)"
+        Language.TAMIL -> "அருகில் ஸ்கேன்"
+        Language.HINDI -> "पास में खोजें"
     }
 
     fun getScanQrButton(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "Scan QR Passport"
-        Language.TAMIL -> "QR பாஸ்போர்ட்டை ஸ்கேன் செய்"
-        Language.HINDI -> "QR पासपोर्ट स्कैन करें"
+        Language.ENGLISH -> "Scan QR"
+        Language.TAMIL -> "QR ஸ்கேன்"
+        Language.HINDI -> "क्यूआर स्कैन"
     }
 
     fun getStopScanButton(lang: Language): String = when (lang) {
@@ -695,9 +695,9 @@ object BilingualStrings {
     }
 
     fun getScoutInboxTitle(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "Verified Scout Inbox"
-        Language.TAMIL -> "சரிபார்க்கப்பட்ட சாரணர் இன்பாக்ஸ்"
-        Language.HINDI -> "सत्यापित स्काउट इनबॉक्स"
+        Language.ENGLISH -> "Scout Inbox"
+        Language.TAMIL -> "ஸ்கவுட் இன்பாக்ஸ்"
+        Language.HINDI -> "स्काउट इनबॉक्स"
     }
 
     fun getNoPassportsReceived(lang: Language): String = when (lang) {
@@ -719,9 +719,9 @@ object BilingualStrings {
     }
 
     fun getCloudSyncTitle(lang: Language): String = when (lang) {
-        Language.ENGLISH -> "WorkManager Cloud Sync"
-        Language.TAMIL -> "WorkManager கிளவுட் ஒத்திசைவு"
-        Language.HINDI -> "WorkManager क्लाउड सिंक"
+        Language.ENGLISH -> "Cloud Sync"
+        Language.TAMIL -> "கிளவுட் ஒத்திசைவு"
+        Language.HINDI -> "क्लाउड सिंक"
     }
 
     fun getPendingRecordsLabel(count: Int, lang: Language): String = when (lang) {

@@ -7,11 +7,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +36,6 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.QrCode2
-import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
@@ -75,6 +78,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.maturity.MaturityContextReport
 import com.athlens.app.domain.model.Achievement
@@ -98,6 +102,7 @@ import com.athlens.app.ui.util.BilingualStrings
 import com.athlens.app.ui.util.DateUtils
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PassportTab(
     profile: AthleteProfile?,
@@ -140,14 +145,17 @@ fun PassportTab(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.weight(1f, fill = false),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Badge,
                             contentDescription = "Passport",
                             tint = ElectricEmerald,
-                            modifier = Modifier.size(26.dp)
+                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = when (language) {
                                 Language.ENGLISH -> "ATHLETE PASSPORT"
@@ -155,9 +163,13 @@ fun PassportTab(
                                 Language.HINDI -> "खिलाड़ी पासपोर्ट"
                             },
                             style = MaterialTheme.typography.titleMedium,
-                            color = ElectricEmerald
+                            color = ElectricEmerald,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
+
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     val shortId = profile?.id?.take(8)?.uppercase() ?: "NEW"
                     Surface(
@@ -166,9 +178,11 @@ fun PassportTab(
                         border = BorderStroke(1.dp, CardNavyElevated)
                     ) {
                         Text(
-                            text = "ID: ATH-$shortId",
+                            text = "#$shortId",
                             style = MaterialTheme.typography.labelSmall,
                             color = TextWhite,
+                            softWrap = false,
+                            maxLines = 1,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -180,13 +194,15 @@ fun PassportTab(
                 Text(
                     text = profile?.fullName ?: "Grassroots Athlete",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = TextWhite
+                    color = TextWhite,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Row(
-                    modifier = Modifier.padding(top = 4.dp),
+                FlowRow(
+                    modifier = Modifier.padding(top = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Surface(
                         color = ElectricEmeraldDark,
@@ -264,7 +280,8 @@ fun PassportTab(
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Shield,
@@ -272,8 +289,7 @@ fun PassportTab(
                         tint = WarmAmber,
                         modifier = Modifier.size(28.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = when (language) {
                                 Language.ENGLISH -> "Guardian Legal Consent Verified"
@@ -283,6 +299,7 @@ fun PassportTab(
                             style = MaterialTheme.typography.titleSmall,
                             color = WarmAmber
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = when (language) {
                                 Language.ENGLISH -> "Guardian: ${profile.guardianName ?: "Verified"} (Authorized for sports telemetry)"
@@ -306,21 +323,26 @@ fun PassportTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Security,
                             contentDescription = "Crypto",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = BilingualStrings.getDigitalPassportTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -331,7 +353,8 @@ fun PassportTab(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.VerifiedUser,
@@ -339,7 +362,6 @@ fun PassportTab(
                                 tint = ElectricEmerald,
                                 modifier = Modifier.size(12.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "ECDSA P-256",
                                 style = MaterialTheme.typography.labelSmall,
@@ -350,7 +372,7 @@ fun PassportTab(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Key Fingerprint & Security explanation
                 Surface(
@@ -363,14 +385,16 @@ fun PassportTab(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = null,
                                 tint = TextMuted,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = BilingualStrings.getKeyFingerprintLabel(language),
                                 style = MaterialTheme.typography.labelSmall,
@@ -403,7 +427,9 @@ fun PassportTab(
                         contentColor = DeepNavy
                     ),
                     shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.QrCode2,
@@ -429,21 +455,26 @@ fun PassportTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.EmojiEvents,
                             contentDescription = "Achievements",
                             tint = WarmAmber,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = BilingualStrings.getAchievementsTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -495,7 +526,9 @@ fun PassportTab(
                     border = BorderStroke(1.dp, WarmAmber),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = WarmAmber),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -520,21 +553,26 @@ fun PassportTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                             contentDescription = "Maturity",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = BilingualStrings.getMaturityCardTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -653,7 +691,9 @@ fun PassportTab(
                     border = BorderStroke(1.dp, ElectricEmerald),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = ElectricEmerald),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Straighten,
@@ -670,14 +710,16 @@ fun PassportTab(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Coach Development Context Disclaimer
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
                         tint = TextMuted,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = BilingualStrings.getMaturityDisclaimer(language),
                         style = MaterialTheme.typography.bodySmall,
@@ -751,6 +793,9 @@ fun PassportTab(
                 )
             }
         }
+
+        // Extra spacing so last element never collides with navigation bar
+        Spacer(modifier = Modifier.height(24.dp))
     }
 
     // Dialog 1: Log Growth Measurement Dialog
@@ -762,6 +807,7 @@ fun PassportTab(
         AlertDialog(
             onDismissRequest = { showLogGrowthDialog = false },
             containerColor = CardNavy,
+            modifier = Modifier.imePadding(),
             title = {
                 Text(
                     text = BilingualStrings.getLogGrowthButton(language),
@@ -863,6 +909,7 @@ fun PassportTab(
         AlertDialog(
             onDismissRequest = { showAddAchievementDialog = false },
             containerColor = CardNavy,
+            modifier = Modifier.imePadding(),
             title = {
                 Text(
                     text = BilingualStrings.getAddAchievementDialogTitle(language),
@@ -871,7 +918,10 @@ fun PassportTab(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     OutlinedTextField(
                         value = titleInput,
                         onValueChange = {
@@ -908,16 +958,17 @@ fun PassportTab(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Level FilterChips
+                    // Level FilterChips with FlowRow
                     Text(
                         text = BilingualStrings.getLevelLabel(language),
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMuted
                     )
 
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         AchievementLevel.entries.forEach { level ->
                             FilterChip(
@@ -942,7 +993,8 @@ fun PassportTab(
                     // Coach Verified Checkbox
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Checkbox(
                             checked = isVerifiedChecked,
@@ -953,11 +1005,11 @@ fun PassportTab(
                                 checkmarkColor = DeepNavy
                             )
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = BilingualStrings.getCoachVerifiedLabel(language),
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextWhite
+                            color = TextWhite,
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -996,7 +1048,7 @@ fun PassportTab(
         )
     }
 
-    // Dialog 3: Cryptographic QR Talent Passport Dialog
+    // Dialog 3: Cryptographic QR Talent Passport Dialog (Vertically scrollable)
     if (showQrPassportDialog && signedPassport != null) {
         val context = LocalContext.current
         val clipboardManager = LocalClipboardManager.current
@@ -1022,7 +1074,8 @@ fun PassportTab(
                     Text(
                         text = BilingualStrings.getQrDialogTitle(language),
                         color = TextWhite,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                     Surface(
                         color = ElectricEmerald.copy(alpha = 0.2f),
@@ -1039,7 +1092,9 @@ fun PassportTab(
             },
             text = {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -1104,7 +1159,8 @@ fun PassportTab(
                             ) {
                                 Row(
                                     modifier = Modifier.padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
@@ -1112,12 +1168,12 @@ fun PassportTab(
                                         tint = ElectricEmerald,
                                         modifier = Modifier.size(20.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = BilingualStrings.getSignatureValidBanner(language),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = ElectricEmerald,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
@@ -1131,7 +1187,8 @@ fun PassportTab(
                             ) {
                                 Row(
                                     modifier = Modifier.padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Error,
@@ -1139,12 +1196,12 @@ fun PassportTab(
                                         tint = CrimsonAlert,
                                         modifier = Modifier.size(20.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = BilingualStrings.getSignatureTamperedBanner(language),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = CrimsonAlert,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
@@ -1250,6 +1307,7 @@ fun PassportTab(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AchievementItemRow(
     achievement: Achievement,
@@ -1266,13 +1324,13 @@ private fun AchievementItemRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Level Badge
                     Surface(
@@ -1303,7 +1361,8 @@ private fun AchievementItemRow(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
@@ -1311,7 +1370,6 @@ private fun AchievementItemRow(
                                     tint = ElectricEmerald,
                                     modifier = Modifier.size(11.dp)
                                 )
-                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = BilingualStrings.getVerifiedBadge(language),
                                     style = MaterialTheme.typography.labelSmall,
@@ -1326,7 +1384,8 @@ private fun AchievementItemRow(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Schedule,
@@ -1334,7 +1393,6 @@ private fun AchievementItemRow(
                                     tint = TextMuted,
                                     modifier = Modifier.size(11.dp)
                                 )
-                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = BilingualStrings.getPendingBadge(language),
                                     style = MaterialTheme.typography.labelSmall,
@@ -1351,13 +1409,17 @@ private fun AchievementItemRow(
                     text = achievement.title,
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextWhite,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = "${achievement.issuerName} • ${DateUtils.formatDate(achievement.awardedAt)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextGray
+                    color = TextGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -1380,13 +1442,18 @@ private fun AchievementItemRow(
 private fun DetailRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = TextMuted
+            color = TextMuted,
+            modifier = Modifier.weight(1f, fill = false),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.bodySmall,
@@ -1411,19 +1478,25 @@ private fun MetricCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextMuted
+                color = TextMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
-                color = ElectricEmerald
+                color = ElectricEmerald,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextGray
+                color = TextGray,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

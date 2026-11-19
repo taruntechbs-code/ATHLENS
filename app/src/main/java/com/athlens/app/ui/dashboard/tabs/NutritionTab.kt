@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,8 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Info
@@ -53,8 +52,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.model.Sport
@@ -116,21 +115,26 @@ fun NutritionTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Restaurant,
                             contentDescription = "Nutrition",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(26.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = BilingualStrings.getNutritionHeaderTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -147,7 +151,7 @@ fun NutritionTab(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = BilingualStrings.getNutritionHeaderSubtitle(language),
@@ -166,21 +170,26 @@ fun NutritionTab(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.WaterDrop,
                             contentDescription = "Hydration",
                             tint = ElectricEmerald,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = BilingualStrings.getHydrationCardTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -220,7 +229,9 @@ fun NutritionTab(
                             contentColor = DeepNavy
                         ),
                         shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 44.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
@@ -240,7 +251,8 @@ fun NutritionTab(
                             hydrationPrefs.edit().putInt("water_$todayDateStr", 0).apply()
                         },
                         border = BorderStroke(1.dp, CardNavyElevated),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.heightIn(min = 44.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -288,7 +300,8 @@ fun NutritionTab(
         ) {
             Row(
                 modifier = Modifier.padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
@@ -296,16 +309,17 @@ fun NutritionTab(
                     tint = TextMuted,
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = BilingualStrings.getNutritionDisclaimer(language),
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextMuted
+                    color = TextMuted,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Bottom space so last card never collides with navigation bar
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -338,12 +352,13 @@ private fun MealItemCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
                         imageVector = categoryIcon,
@@ -351,17 +366,20 @@ private fun MealItemCard(
                         tint = if (isChecked) ElectricEmerald else WarmAmber,
                         modifier = Modifier.size(22.dp)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = meal.getTitle(language),
                             style = MaterialTheme.typography.titleMedium,
-                            color = if (isChecked) ElectricEmerald else TextWhite
+                            color = if (isChecked) ElectricEmerald else TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = meal.getTiming(language),
                             style = MaterialTheme.typography.labelSmall,
-                            color = WarmAmber
+                            color = WarmAmber,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -375,7 +393,8 @@ private fun MealItemCard(
                         text = meal.costEstimate,
                         style = MaterialTheme.typography.labelSmall,
                         color = ElectricEmerald,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        maxLines = 1
                     )
                 }
 
@@ -401,7 +420,7 @@ private fun MealItemCard(
                 color = TextGray
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Macro / Recovery Benefit
             Surface(
@@ -410,7 +429,8 @@ private fun MealItemCard(
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -418,7 +438,6 @@ private fun MealItemCard(
                             .clip(CircleShape)
                             .background(ElectricEmerald)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = meal.getMacroBenefit(language),
                         style = MaterialTheme.typography.labelSmall,
