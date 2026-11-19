@@ -1,5 +1,7 @@
 package com.athlens.app.domain.nutrition
 
+import androidx.annotation.DrawableRes
+import com.athlens.app.R
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.model.Sport
 
@@ -13,6 +15,7 @@ enum class NutritionCategory {
 data class NutritionMealItem(
     val id: String,
     val category: NutritionCategory,
+    @DrawableRes val imageRes: Int,
     val titleEn: String,
     val titleTa: String,
     val titleHi: String,
@@ -59,6 +62,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "pre_train_1",
                 category = NutritionCategory.PRE_TRAINING_ENERGY,
+                imageRes = R.drawable.img_food_ragi_koozh,
                 titleEn = "Ragi Koozh with Small Onions",
                 titleTa = "கேழ்வரகு கூழ் மற்றும் சின்ன வெங்காயம்",
                 titleHi = "रागी का दलिया (कूझ) व छोटे प्याज",
@@ -76,6 +80,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "pre_train_2",
                 category = NutritionCategory.PRE_TRAINING_ENERGY,
+                imageRes = R.drawable.img_food_banana_peanuts,
                 titleEn = "Ripe Banana + Roasted Peanuts (Kadalai)",
                 titleTa = "வாழைப்பழம் + வறுத்த வேர்க்கடலை",
                 titleHi = "पका केला + भुनी हुई मूंगफली",
@@ -93,6 +98,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "post_train_1",
                 category = NutritionCategory.POST_TRAINING_PROTEIN,
+                imageRes = R.drawable.img_food_sundal,
                 titleEn = "Boiled Black Chana Sundal (Kondakadalai)",
                 titleTa = "கருப்பு கொண்டைக்கடலை சுண்டல்",
                 titleHi = "उबला काला चना सुंडल",
@@ -110,6 +116,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "post_train_2",
                 category = NutritionCategory.POST_TRAINING_PROTEIN,
+                imageRes = R.drawable.img_food_eggs_sprouts,
                 titleEn = "2 Boiled Country Eggs / Sprouted Green Gram",
                 titleTa = "2 நாட்டுக்கோழி முட்டை / முளைகட்டிய பாசிப்பயறு",
                 titleHi = "2 उबले अंडे / अंकुरित हरी मूंग",
@@ -127,6 +134,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "hydration_1",
                 category = NutritionCategory.HYDRATION_ELECTROLYTES,
+                imageRes = R.drawable.img_food_neer_mor,
                 titleEn = "Spiced Neer Mor (Village Buttermilk)",
                 titleTa = "கிராமத்து மசாலா நீர் மோர்",
                 titleHi = "मसालेदार छाछ (नीरु मोर)",
@@ -144,6 +152,7 @@ object NutritionPlanProvider {
             NutritionMealItem(
                 id = "evening_recovery_1",
                 category = NutritionCategory.EVENING_RECOVERY,
+                imageRes = R.drawable.img_food_sathumaavu,
                 titleEn = "Traditional Sathumaavu (Multi-Grain Health Mix)",
                 titleTa = "பாரம்பரிய சத்துமாவு கஞ்சி",
                 titleHi = "पारंपरिक सत्तू / बहु-अनाज हेल्थ मिक्स दलिया",

@@ -412,13 +412,6 @@ private fun MealPhotoGlassCard(
     onToggle: () -> Unit,
     hazeState: HazeState? = null
 ) {
-    val drawableRes = when (meal.category) {
-        NutritionCategory.PRE_TRAINING_ENERGY -> R.drawable.img_food_preworkout
-        NutritionCategory.POST_TRAINING_PROTEIN -> R.drawable.img_food_protein
-        NutritionCategory.HYDRATION_ELECTROLYTES -> R.drawable.img_food_hydration
-        NutritionCategory.EVENING_RECOVERY -> R.drawable.img_food_recovery
-    }
-
     val cardBorder = if (isChecked) GlassBorderEmerald else GlassBorderStandard
 
     ContourGlassCard(
@@ -445,22 +438,10 @@ private fun MealPhotoGlassCard(
                     .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(18.dp))
             ) {
                 Image(
-                    painter = painterResource(drawableRes),
+                    painter = painterResource(meal.imageRes),
                     contentDescription = meal.getTitle(language),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
-                )
-
-                // Dark gradient scrim over photo for depth
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                0.0f to Color.Transparent,
-                                1.0f to Color.Black.copy(alpha = 0.40f)
-                            )
-                        )
                 )
 
                 // Glowing emerald overlay when marked completed
