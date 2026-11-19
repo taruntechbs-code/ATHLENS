@@ -15,3 +15,5 @@ app/build/
 *.ap_
 *.aab
 device_screen.png
+.vscode/
+

@@ -9,9 +9,11 @@ import com.athlens.app.data.repository.AthleteRepositoryImpl
 import com.athlens.app.data.repository.TrainingRepository
 import com.athlens.app.data.repository.TrainingRepositoryImpl
 import com.athlens.app.data.security.PassphraseManager
+import com.athlens.app.data.security.PassportCryptoManager
 
 interface AppContainer {
     val passphraseManager: PassphraseManager
+    val passportCryptoManager: PassportCryptoManager
     val database: AthlensDatabase
     val athleteRepository: AthleteRepository
     val trainingRepository: TrainingRepository
@@ -24,12 +26,20 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         PassphraseManager(context)
     }
 
+    override val passportCryptoManager: PassportCryptoManager by lazy {
+        PassportCryptoManager()
+    }
+
     override val database: AthlensDatabase by lazy {
         AthlensDatabaseFactory.create(context, passphraseManager)
     }
 
     override val athleteRepository: AthleteRepository by lazy {
-        AthleteRepositoryImpl(database.athleteProfileDao(), database.growthMeasurementDao())
+        AthleteRepositoryImpl(
+            database.athleteProfileDao(),
+            database.growthMeasurementDao(),
+            database.achievementDao()
+        )
     }
 
     override val trainingRepository: TrainingRepository by lazy {

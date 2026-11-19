@@ -185,9 +185,23 @@ fun DashboardScreen(
                     averageScore = uiState.averageFormScore,
                     latestSessionScore = uiState.recentSessions.firstOrNull()?.formScore,
                     maturityReport = uiState.maturityReport,
+                    achievements = uiState.achievements,
+                    signedPassport = uiState.signedPassport,
                     language = uiState.activeLanguage,
                     onLogGrowthMeasurement = { h, w ->
                         viewModel.logGrowthMeasurement(h, w)
+                    },
+                    onAddAchievement = { title, level, issuer, isVerified ->
+                        viewModel.addAchievement(title, level, issuer, isVerified)
+                    },
+                    onDeleteAchievement = { id ->
+                        viewModel.deleteAchievement(id)
+                    },
+                    onVerifyPassport = { payload, sig, pubKey ->
+                        viewModel.verifyPassportOffline(payload, sig, pubKey)
+                    },
+                    onTamperPayload = { payload ->
+                        viewModel.simulateTamperedPayload(payload)
                     }
                 )
                 DashboardTab.NUTRITION -> NutritionTab(

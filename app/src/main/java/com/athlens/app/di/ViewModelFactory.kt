@@ -19,7 +19,8 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(DashboardViewModel::class.java) -> {
                 DashboardViewModel(
                     appContainer.athleteRepository,
-                    appContainer.trainingRepository
+                    appContainer.trainingRepository,
+                    appContainer.passportCryptoManager
                 ) as T
             }
             modelClass.isAssignableFrom(CameraCoachViewModel::class.java) -> {

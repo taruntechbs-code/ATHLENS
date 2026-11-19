@@ -457,4 +457,149 @@ object BilingualStrings {
         Language.TAMIL -> "கிராமப்புற வீரர்களுக்கான பொது விளையாட்டு ஊட்டச்சத்து வழிகாட்டல் — மருத்துவ உணவு ஆலோசனைக்கு மாற்றாகாது."
         Language.HINDI -> "खिलाड़ियों के लिए सामान्य खेल पोषण मार्गदर्शन — यह चिकित्सीय आहार परामर्श का विकल्प नहीं है।"
     }
+
+    // Phase 5: Verified Achievements & Cryptographic QR Passport
+    fun getAchievementsTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Verified Achievements"
+        Language.TAMIL -> "சரிபார்க்கப்பட்ட சாதனைகள்"
+        Language.HINDI -> "सत्यापित उपलब्धियां"
+    }
+
+    fun getAddAchievementButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "+ Add Achievement"
+        Language.TAMIL -> "+ சாதனை சேர்"
+        Language.HINDI -> "+ उपलब्धि जोड़ें"
+    }
+
+    fun getNoAchievementsYet(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "No achievements recorded yet. Add your school, district, or state medals!"
+        Language.TAMIL -> "இதுவரை சாதனைகள் எதுவும் பதிவு செய்யப்படவில்லை. உங்கள் பதக்கங்களைச் சேர்க்கவும்!"
+        Language.HINDI -> "अभी तक कोई उपलब्धि दर्ज नहीं की गई है। अपने पदक जोड़ें!"
+    }
+
+    fun getVerifiedBadge(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Verified"
+        Language.TAMIL -> "சரிபார்க்கப்பட்டது"
+        Language.HINDI -> "सत्यापित"
+    }
+
+    fun getPendingBadge(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Pending Verification"
+        Language.TAMIL -> "சரிபார்ப்பு நிலுவையில் உள்ளது"
+        Language.HINDI -> "सत्यापन लंबित"
+    }
+
+    fun getAddAchievementDialogTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Record New Achievement"
+        Language.TAMIL -> "புதிய சாதனையைப் பதிவுசெய்க"
+        Language.HINDI -> "नई उपलब्धि दर्ज करें"
+    }
+
+    fun getAchievementTitleLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Achievement Title (e.g. Best Raider)"
+        Language.TAMIL -> "சாதனை தலைப்பு (எ.கா. சிறந்த ரைடர்)"
+        Language.HINDI -> "उपलब्धि का शीर्षक (उदा. सर्वश्रेष्ठ रेडर)"
+    }
+
+    fun getIssuerLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Issuing Body / School"
+        Language.TAMIL -> "வழங்கிய அமைப்பு / பள்ளி"
+        Language.HINDI -> "जारीकर्ता संगठन / विद्यालय"
+    }
+
+    fun getLevelLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Competition Level"
+        Language.TAMIL -> "போட்டி நிலை"
+        Language.HINDI -> "प्रतियोगिता स्तर"
+    }
+
+    fun getCoachVerifiedLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Verified by Coach / School Official"
+        Language.TAMIL -> "பயிற்சியாளர் / பள்ளி நிர்வாகியால் சரிபார்க்கப்பட்டது"
+        Language.HINDI -> "प्रशिक्षक / विद्यालय अधिकारी द्वारा सत्यापित"
+    }
+
+    fun getSaveButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Save"
+        Language.TAMIL -> "சேமி"
+        Language.HINDI -> "सहेजें"
+    }
+
+    fun getDigitalPassportTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Cryptographic Talent Passport"
+        Language.TAMIL -> "கிரிப்டோகிராஃபிக் திறமை பாஸ்போர்ட்"
+        Language.HINDI -> "क्रिप्टोग्राफ़िक टैलेंट पासपोर्ट"
+    }
+
+    fun getHardwareSignedBadge(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Hardware-Signed (ECDSA P-256)"
+        Language.TAMIL -> "வன்பொருள் கையொப்பமிட்டது (ECDSA P-256)"
+        Language.HINDI -> "हार्डवेयर-हस्ताक्षरित (ECDSA P-256)"
+    }
+
+    fun getKeyFingerprintLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Key Fingerprint"
+        Language.TAMIL -> "விசை கைரேகை"
+        Language.HINDI -> "कुंजी फ़िंगरप्रिंट"
+    }
+
+    fun getShowQrPassportButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Show Signed QR Passport"
+        Language.TAMIL -> "கையொப்பமிட்ட QR பாஸ்போர்ட்டைக் காட்டு"
+        Language.HINDI -> "हस्ताक्षरित QR पासपोर्ट दिखाएं"
+    }
+
+    fun getQrDialogTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Scout Verification QR"
+        Language.TAMIL -> "சாரணர் சரிபார்ப்பு QR"
+        Language.HINDI -> "स्काउट सत्यापन QR"
+    }
+
+    fun getQrScanInstruction(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Scouts and judges can scan this QR offline to mathematically verify athlete credentials and form progression."
+        Language.TAMIL -> "சாரணர்கள் மற்றும் நடுவர்கள் இந்த QR-ஐ ஸ்கேன் செய்து தடகள சான்றிதழ்கள் மற்றும் முன்னேற்றத்தை ஆஃப்லைனில் சரிபார்க்கலாம்."
+        Language.HINDI -> "स्काउट और निर्णायक खिलाड़ी के विवरण और प्रगति को गणितीय रूप से सत्यापित करने के लिए इस QR को स्कैन कर सकते हैं।"
+    }
+
+    fun getVerifyIntegrityButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Verify Integrity"
+        Language.TAMIL -> "நம்பகத்தன்மையை சரிபார்"
+        Language.HINDI -> "अखंडता सत्यापित करें"
+    }
+
+    fun getSimulateTamperButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Simulate Tamper Test"
+        Language.TAMIL -> "சேதப்படுத்தல் சோதனை செய்"
+        Language.HINDI -> "छेड़छाड़ परीक्षण अनुकरण करें"
+    }
+
+    fun getSignatureValidBanner(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Authentic — Cryptographic Signature Verified Offline (ECDSA P-256)"
+        Language.TAMIL -> "உண்மையானது — ஆஃப்லைன் கையொப்பம் சரிபார்க்கப்பட்டது (ECDSA P-256)"
+        Language.HINDI -> "प्रामाणिक — ऑफ़लाइन हस्ताक्षर सत्यापित (ECDSA P-256)"
+    }
+
+    fun getSignatureTamperedBanner(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "TAMPERED — Signature Mismatch! Payload altered, rejected by verifier."
+        Language.TAMIL -> "சேதப்படுத்தப்பட்டது — கையொப்பம் பொருந்தவில்லை! மாற்றப்பட்ட தரவு நிராகரிக்கப்பட்டது."
+        Language.HINDI -> "छेड़छाड़ की गई — हस्ताक्षर बेमेल! डेटा बदला गया, सत्यापनकर्ता द्वारा अस्वीकृत।"
+    }
+
+    fun getCopySignedJsonButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Copy Signed JSON"
+        Language.TAMIL -> "கையொப்பமிட்ட JSON ஐ நகலெடு"
+        Language.HINDI -> "हस्ताक्षरित JSON कॉपी करें"
+    }
+
+    fun getCopiedToClipboard(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Copied to clipboard!"
+        Language.TAMIL -> "கிளிப்போர்டில் நகலெடுக்கப்பட்டது!"
+        Language.HINDI -> "क्लिपबोर्ड पर कॉपी किया गया!"
+    }
+
+    fun getCloseButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Close"
+        Language.TAMIL -> "மூடு"
+        Language.HINDI -> "बंद करें"
+    }
 }
