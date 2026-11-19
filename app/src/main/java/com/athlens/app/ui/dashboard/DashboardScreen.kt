@@ -94,7 +94,8 @@ fun DashboardScreen(
                     profile = uiState.athleteProfile,
                     recentSessions = uiState.recentSessions,
                     language = uiState.activeLanguage,
-                    onLaunchCameraCoach = onLaunchCameraCoach
+                    onLaunchCameraCoach = onLaunchCameraCoach,
+                    hazeState = hazeState
                 )
                 DashboardTab.PASSPORT -> PassportTab(
                     profile = uiState.athleteProfile,

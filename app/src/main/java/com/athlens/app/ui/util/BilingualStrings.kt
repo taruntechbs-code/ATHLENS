@@ -217,7 +217,7 @@ object BilingualStrings {
 
     fun getStartSession(lang: Language): String = when (lang) {
         Language.ENGLISH -> "Start Drill Session"
-        Language.TAMIL -> "பயிற்சியைத் தொடங்கு"
+        Language.TAMIL -> "பயிற்சி தொடங்கு"
         Language.HINDI -> "ड्रिल सत्र शुरू करें"
     }
 

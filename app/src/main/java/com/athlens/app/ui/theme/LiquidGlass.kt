@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -294,6 +295,7 @@ fun LiquidGlassButton(
     enabled: Boolean = true,
     shape: Shape = CircleShape,
     borderBrush: Brush = if (isPrimary) GlassBorderEmerald else GlassBorderStandard,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
     content: @Composable RowScope.() -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -343,7 +345,7 @@ fun LiquidGlassButton(
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
             }
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(contentPadding),
         contentAlignment = Alignment.Center
     ) {
         Row(

@@ -9,13 +9,18 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,15 +42,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,10 +64,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -77,7 +87,12 @@ import com.athlens.app.ui.theme.CardNavyElevated
 import com.athlens.app.ui.theme.CrimsonAlert
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
-import com.athlens.app.ui.theme.ElectricEmeraldDark
+import com.athlens.app.ui.theme.GlassBorderAmber
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassButton
+import com.athlens.app.ui.theme.LiquidGlassPill
+import com.athlens.app.ui.theme.OceanTeal
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
@@ -217,32 +232,85 @@ fun CameraCoachScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Top HUD Controls with statusBarsPadding
-        TopCoachHud(
-            selectedDrill = uiState.selectedDrill,
-            isFrontCamera = uiState.isFrontCamera,
-            formScore = uiState.kinematicFeedback.formScore,
-            language = uiState.activeLanguage,
-            isVoiceMuted = uiState.isVoiceMuted,
-            onClose = onNavigateBack,
-            onToggleCamera = { viewModel.toggleCamera() },
-            onToggleVoice = { viewModel.toggleVoiceMute() },
-            onToggleLanguage = {
-                val nextLang = when (uiState.activeLanguage) {
-                    Language.ENGLISH -> Language.TAMIL
-                    Language.TAMIL -> Language.HINDI
-                    Language.HINDI -> Language.ENGLISH
-                }
-                viewModel.setLanguage(nextLang)
-            },
-            onSelectDrill = { viewModel.setDrill(it) },
+        // Top HUD Controls (Apple Camera Liquid Glass Top HUD)
+        Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-        )
+                .statusBarsPadding()
+                .padding(horizontal = 14.dp, vertical = 6.dp)
+        ) {
+            AppleCameraTopHud(
+                selectedDrill = uiState.selectedDrill,
+                language = uiState.activeLanguage,
+                isVoiceMuted = uiState.isVoiceMuted,
+                onClose = onNavigateBack,
+                onToggleCamera = { viewModel.toggleCamera() },
+                onToggleVoice = { viewModel.toggleVoiceMute() },
+                onToggleLanguage = {
+                    val nextLang = when (uiState.activeLanguage) {
+                        Language.ENGLISH -> Language.TAMIL
+                        Language.TAMIL -> Language.HINDI
+                        Language.HINDI -> Language.ENGLISH
+                    }
+                    viewModel.setLanguage(nextLang)
+                },
+                onCycleDrill = {
+                    val nextDrill = if (uiState.selectedDrill == DrillType.KABADDI_RAID_STANCE) {
+                        DrillType.KHO_KHO_CROUCH_START
+                    } else {
+                        DrillType.KABADDI_RAID_STANCE
+                    }
+                    viewModel.setDrill(nextDrill)
+                }
+            )
 
-        // Bottom HUD Coaching Banner & Telemetry with navigationBarsPadding
-        BottomCoachHud(
+            // Floating Score Capsule just below Top HUD (right-aligned)
+            val formScore = uiState.kinematicFeedback.formScore
+            val scoreColor = when {
+                formScore >= 75 -> ElectricEmerald
+                formScore >= 50 -> WarmAmber
+                else -> CrimsonAlert
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 8.dp)
+                    .shadow(8.dp, RoundedCornerShape(20.dp), ambientColor = Color.Black)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xCC050814))
+                    .border(1.2.dp, scoreColor, RoundedCornerShape(20.dp))
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(scoreColor)
+                    )
+                    Text(
+                        text = "$formScore",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFeatureSettings = "tnum"
+                        ),
+                        color = scoreColor
+                    )
+                    Text(
+                        text = "/ 100",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted
+                    )
+                }
+            }
+        }
+
+        // Bottom HUD (Apple Camera Liquid Glass HUD with Shutter Action Bar)
+        AppleCameraBottomHud(
             feedback = uiState.kinematicFeedback,
             inferenceTimeMs = uiState.inferenceTimeMs,
             isSessionActive = uiState.isSessionActive,
@@ -261,7 +329,7 @@ fun CameraCoachScreen(
         if (uiState.sessionSavedSuccessfully) {
             AlertDialog(
                 onDismissRequest = onNavigateBack,
-                containerColor = CardNavy,
+                containerColor = DeepNavy,
                 icon = {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
@@ -306,175 +374,158 @@ fun CameraCoachScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Top HUD: Circular Close, Compact Drill Pill, Lens Switch, Mute, Language
+ */
 @Composable
-private fun TopCoachHud(
+private fun AppleCameraTopHud(
     selectedDrill: DrillType,
-    isFrontCamera: Boolean,
-    formScore: Int,
     language: Language,
     isVoiceMuted: Boolean,
     onClose: () -> Unit,
     onToggleCamera: () -> Unit,
     onToggleVoice: () -> Unit,
     onToggleLanguage: () -> Unit,
-    onSelectDrill: (DrillType) -> Unit,
-    modifier: Modifier = Modifier
+    onCycleDrill: () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .background(Color.Black.copy(alpha = 0.55f))
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+    val haptic = LocalHapticFeedback.current
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Top Row: Close | Score Pill | Action Cluster
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // Left: Circular 42.dp Glass Close Button
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(Color(0x99060B18))
+                .border(1.2.dp, GlassBorderStandard, CircleShape)
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onClose()
+                },
+            contentAlignment = Alignment.Center
         ) {
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                    .size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = TextWhite,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+                tint = TextWhite,
+                modifier = Modifier.size(20.dp)
+            )
+        }
 
-            // Live Form Score Pill
-            val scoreColor = when {
-                formScore >= 75 -> ElectricEmerald
-                formScore >= 50 -> WarmAmber
-                else -> CrimsonAlert
-            }
-            Surface(
-                color = DeepNavy.copy(alpha = 0.85f),
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.5.dp, scoreColor)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(scoreColor)
-                    )
-                    Text(
-                        text = "Score: $formScore",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextWhite,
-                        maxLines = 1
-                    )
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Center: Compact Drill Capsule Pill
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(42.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0x99060B18))
+                .border(1.2.dp, GlassBorderEmerald, RoundedCornerShape(22.dp))
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onCycleDrill()
                 }
-            }
-
-            // Quick Control Actions
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Language Switcher
-                Surface(
-                    onClick = onToggleLanguage,
-                    color = CardNavy.copy(alpha = 0.85f),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, ElectricEmerald.copy(alpha = 0.5f)),
-                    modifier = Modifier.height(34.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    ) {
-                        Text(
-                            text = when (language) {
-                                Language.ENGLISH -> "EN"
-                                Language.TAMIL -> "தமிழ்"
-                                Language.HINDI -> "हिन्दी"
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ElectricEmerald
-                        )
-                    }
-                }
-
-                // Voice Coach Mute/Unmute
-                IconButton(
-                    onClick = onToggleVoice,
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                        .size(34.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isVoiceMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = if (isVoiceMuted) "Unmute Voice Coach" else "Mute Voice Coach",
-                        tint = if (isVoiceMuted) TextMuted else ElectricEmerald,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                // Switch Camera Lens
-                IconButton(
-                    onClick = onToggleCamera,
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                        .size(34.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FlipCameraAndroid,
-                        contentDescription = "Switch Camera",
-                        tint = TextWhite,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                Text(
+                    text = selectedDrill.getDisplayName(language),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextWhite,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = "Switch Drill",
+                    tint = ElectricEmerald,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
 
-        // Drill Selector Chips with FlowRow
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Right Control Cluster
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            DrillType.entries.forEach { drill ->
-                val isSelected = drill == selectedDrill
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onSelectDrill(drill) },
-                    label = {
-                        Text(
-                            text = drill.getDisplayName(language),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = ElectricEmerald,
-                        selectedLabelColor = DeepNavy,
-                        containerColor = CardNavy.copy(alpha = 0.8f),
-                        labelColor = TextWhite
-                    ),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = if (isSelected) ElectricEmerald else Color.Transparent
+            // Voice Mute Button
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color(0x99060B18))
+                    .border(
+                        1.2.dp,
+                        if (!isVoiceMuted) GlassBorderEmerald else GlassBorderStandard,
+                        CircleShape
                     )
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onToggleVoice()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isVoiceMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = "Voice Coach",
+                    tint = if (!isVoiceMuted) ElectricEmerald else TextMuted,
+                    modifier = Modifier.size(18.dp)
                 )
             }
+
+            // Camera Flip Button
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color(0x99060B18))
+                    .border(1.2.dp, GlassBorderStandard, CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onToggleCamera()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FlipCameraAndroid,
+                    contentDescription = "Flip Camera",
+                    tint = TextWhite,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // Language Cycler Pill
+            LiquidGlassPill(
+                text = when (language) {
+                    Language.ENGLISH -> "EN"
+                    Language.TAMIL -> "தமிழ்"
+                    Language.HINDI -> "हिन्दी"
+                },
+                isSelected = true,
+                tintColor = ElectricEmerald,
+                onClick = onToggleLanguage
+            )
         }
     }
 }
 
+/**
+ * Bottom HUD: Live Coaching Banner + Telemetry Pills + Apple-Camera Shutter Action Bar
+ */
 @Composable
-private fun BottomCoachHud(
+private fun AppleCameraBottomHud(
     feedback: com.athlens.app.domain.kinematics.KinematicFeedback,
     inferenceTimeMs: Long,
     isSessionActive: Boolean,
@@ -486,151 +537,207 @@ private fun BottomCoachHud(
     onStopSession: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
+    val bannerBorder = if (feedback.isGoodForm) GlassBorderEmerald else GlassBorderAmber
+    val bannerColor = if (feedback.isGoodForm) ElectricEmerald else WarmAmber
+
     Column(
         modifier = modifier
-            .background(Color.Black.copy(alpha = 0.70f))
             .navigationBarsPadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Coaching Feedback Banner
-        val bannerBorderColor = if (feedback.isGoodForm) ElectricEmerald else WarmAmber
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy.copy(alpha = 0.9f)),
-            border = BorderStroke(1.5.dp, bannerBorderColor),
-            modifier = Modifier.fillMaxWidth()
+        // 1. Live Coaching Banner
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(12.dp, RoundedCornerShape(22.dp), ambientColor = Color.Black)
+                .clip(RoundedCornerShape(22.dp))
+                .background(Color(0xD9060B18))
+                .border(1.2.dp, bannerBorder, RoundedCornerShape(22.dp))
+                .padding(14.dp)
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = BilingualStrings.getKinematicFeedback(feedback.primaryErrorCode, language),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (feedback.isGoodForm) ElectricEmerald else WarmAmber,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = bannerColor,
                         modifier = Modifier.weight(1f)
                     )
-                    Surface(
-                        color = if (isVoiceMuted) TextMuted.copy(alpha = 0.15f) else ElectricEmerald.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(6.dp)
+
+                    // Compact voice indicator
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isVoiceMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = null,
-                                tint = if (isVoiceMuted) TextMuted else ElectricEmerald,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = if (isVoiceMuted) {
-                                    BilingualStrings.getVoiceCoachMuted(language)
-                                } else {
-                                    BilingualStrings.getVoiceCoachActive(language)
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isVoiceMuted) TextMuted else ElectricEmerald,
-                                maxLines = 1
-                            )
-                        }
+                        Icon(
+                            imageVector = if (isVoiceMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = null,
+                            tint = if (isVoiceMuted) TextMuted else ElectricEmerald,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = if (isVoiceMuted) "Muted" else "Voice ON",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isVoiceMuted) TextMuted else ElectricEmerald
+                        )
                     }
                 }
 
                 if (language == Language.TAMIL && feedback.primaryErrorCode != com.athlens.app.domain.kinematics.KinematicFeedback.CODE_GOOD_FORM) {
-                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = BilingualStrings.getKinematicFeedback(feedback.primaryErrorCode, Language.ENGLISH),
                         style = MaterialTheme.typography.bodySmall,
                         color = TextGray
                     )
                 }
+
+                // Compact Telemetry Pills: Knee Angle | Torso Lean | Latency
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TelemetryGlassPill(
+                        label = BilingualStrings.getKneeAngleLabel(language),
+                        value = "${feedback.kneeAngleDeg.roundToInt()}°",
+                        modifier = Modifier.weight(1f)
+                    )
+                    TelemetryGlassPill(
+                        label = BilingualStrings.getTorsoLeanLabel(language),
+                        value = "${feedback.torsoAngleDeg.roundToInt()}°",
+                        modifier = Modifier.weight(1f)
+                    )
+                    TelemetryGlassPill(
+                        label = "Latency",
+                        value = "${inferenceTimeMs}ms",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
 
-        // Telemetry Chips (Knee Angle | Torso Lean | Latency)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // 2. Apple-Camera-Style Shutter Action Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(84.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(Color(0xD9060B18))
+                .border(1.2.dp, GlassBorderStandard, RoundedCornerShape(32.dp))
+                .padding(horizontal = 20.dp),
+            contentAlignment = Alignment.Center
         ) {
-            TelemetryChip(
-                label = BilingualStrings.getKneeAngleLabel(language),
-                value = "${feedback.kneeAngleDeg.roundToInt()}°",
-                modifier = Modifier.weight(1f)
-            )
-            TelemetryChip(
-                label = BilingualStrings.getTorsoLeanLabel(language),
-                value = "${feedback.torsoAngleDeg.roundToInt()}°",
-                modifier = Modifier.weight(1f)
-            )
-            TelemetryChip(
-                label = "Latency",
-                value = "${inferenceTimeMs}ms",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Session Action Button (Start / Stop & Save)
-        if (!isSessionActive) {
-            Button(
-                onClick = onStartSession,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ElectricEmerald,
-                    contentColor = DeepNavy
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 50.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = BilingualStrings.getStartSession(language),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        } else {
-            val minutes = durationSeconds / 60
-            val seconds = durationSeconds % 60
-            val timeString = String.format("%02d:%02d", minutes, seconds)
+                // Left: Stopwatch Timer
+                val minutes = durationSeconds / 60
+                val seconds = durationSeconds % 60
+                val timeString = String.format("%02d:%02d", minutes, seconds)
 
-            Button(
-                onClick = onStopSession,
-                enabled = !isSaving,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CrimsonAlert,
-                    contentColor = TextWhite
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 50.dp)
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
-                        color = TextWhite,
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                Column {
                     Text(
-                        text = "${BilingualStrings.getStopAndSaveSession(language)} ($timeString)",
-                        style = MaterialTheme.typography.titleMedium
+                        text = if (isSessionActive) "RECORDING" else "SESSION TIME",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSessionActive) CrimsonAlert else TextMuted,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = timeString,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFeatureSettings = "tnum"
+                        ),
+                        color = TextWhite
+                    )
+                }
+
+                // Center: Tactile Shutter Capsule Button
+                val infiniteTransition = rememberInfiniteTransition(label = "recording_pulse")
+                val pulseScale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = if (isSessionActive) 1.08f else 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 800),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "pulse"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(68.dp)
+                        .clip(CircleShape)
+                        .border(
+                            2.5.dp,
+                            if (isSessionActive) CrimsonAlert else ElectricEmerald,
+                            CircleShape
+                        )
+                        .clickable(enabled = !isSaving) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            if (isSessionActive) onStopSession() else onStartSession()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            color = TextWhite,
+                            modifier = Modifier.size(28.dp),
+                            strokeWidth = 2.5.dp
+                        )
+                    } else if (isSessionActive) {
+                        // Apple-style Recording Stop Button (Square in ring)
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = pulseScale
+                                    scaleY = pulseScale
+                                }
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(CrimsonAlert)
+                        )
+                    } else {
+                        // Apple-style Shutter Button (Solid emerald circle)
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(ElectricEmerald),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Start",
+                                tint = DeepNavy,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Right: Action Prompt / Badge
+                Box(modifier = Modifier.width(72.dp), contentAlignment = Alignment.CenterEnd) {
+                    Text(
+                        text = if (isSessionActive) {
+                            if (language == Language.TAMIL) "நிறுத்து" else "TAP TO\nSTOP"
+                        } else {
+                            if (language == Language.TAMIL) "தொடங்கு" else "TAP TO\nSTART"
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = if (isSessionActive) CrimsonAlert else ElectricEmerald,
+                        textAlign = TextAlign.End,
+                        maxLines = 2
                     )
                 }
             }
@@ -638,21 +745,24 @@ private fun BottomCoachHud(
     }
 }
 
+/**
+ * Compact Glass Telemetry Pill
+ */
 @Composable
-private fun TelemetryChip(
+private fun TelemetryGlassPill(
     label: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        color = CardNavyElevated.copy(alpha = 0.8f),
-        shape = RoundedCornerShape(8.dp),
+    Box(
         modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.08f))
+            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
@@ -662,7 +772,10 @@ private fun TelemetryChip(
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = "tnum"
+                ),
                 color = TextWhite,
                 maxLines = 1
             )

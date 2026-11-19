@@ -1,6 +1,5 @@
 package com.athlens.app.ui.p2p
 
-import android.content.Context
 import android.util.Base64
 import android.util.Log
 import androidx.camera.core.CameraSelector
@@ -8,9 +7,16 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,9 +38,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -45,10 +50,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ClipOp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -56,10 +73,13 @@ import com.athlens.app.data.local.entity.ReceivedPassportEntity
 import com.athlens.app.data.security.PassportCryptoManager
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.passport.PassportSerializer
-import com.athlens.app.ui.theme.CardNavy
+import com.athlens.app.ui.theme.ContourGlassCard
 import com.athlens.app.ui.theme.CrimsonAlert
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassPill
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
@@ -104,8 +124,8 @@ fun QrScannerScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(DeepNavy)) {
-        // CameraX Preview
+    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+        // 1. CameraX Preview
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx).apply {
@@ -225,91 +245,170 @@ fun QrScannerScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Viewfinder reticle overlay
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(260.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(BorderStroke(2.dp, ElectricEmerald), RoundedCornerShape(16.dp))
+        // 2. Translucent Mask & Scanning Reticle with Animated Laser
+        val scanTransition = rememberInfiniteTransition(label = "laser_sweep")
+        val laserProgress by scanTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2200, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "laser_pos"
+        )
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val boxSize = 260.dp.toPx()
+            val left = (width - boxSize) / 2f
+            val top = (height - boxSize) / 2f
+            val cornerRadius = 24.dp.toPx()
+            val armLength = 28.dp.toPx()
+            val strokeWidth = 3.5.dp.toPx()
+
+            // Translucent Mask outside reticle
+            val path = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        rect = Rect(left, top, left + boxSize, top + boxSize),
+                        cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                    )
+                )
+            }
+
+            clipPath(path, clipOp = ClipOp.Difference) {
+                drawRect(color = Color(0x99050814))
+            }
+
+            // Glowing Emerald Corner Contour Brackets
+            val bracketColor = ElectricEmerald
+
+            // Top-Left
+            drawLine(bracketColor, Offset(left, top + armLength), Offset(left, top + cornerRadius), strokeWidth)
+            drawLine(bracketColor, Offset(left + cornerRadius, top), Offset(left + armLength, top), strokeWidth)
+
+            // Top-Right
+            drawLine(bracketColor, Offset(left + boxSize - armLength, top), Offset(left + boxSize - cornerRadius, top), strokeWidth)
+            drawLine(bracketColor, Offset(left + boxSize, top + cornerRadius), Offset(left + boxSize, top + armLength), strokeWidth)
+
+            // Bottom-Left
+            drawLine(bracketColor, Offset(left, top + boxSize - armLength), Offset(left, top + boxSize - cornerRadius), strokeWidth)
+            drawLine(bracketColor, Offset(left + cornerRadius, top + boxSize), Offset(left + armLength, top + boxSize), strokeWidth)
+
+            // Bottom-Right
+            drawLine(bracketColor, Offset(left + boxSize - armLength, top + boxSize), Offset(left + boxSize - cornerRadius, top + boxSize), strokeWidth)
+            drawLine(bracketColor, Offset(left + boxSize, top + boxSize - armLength), Offset(left + boxSize, top + boxSize - cornerRadius), strokeWidth)
+
+            // Animated Horizontal Laser Scan Line
+            val laserY = top + (boxSize * laserProgress)
+            drawLine(
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        Color.Transparent,
+                        ElectricEmerald.copy(alpha = 0.85f),
+                        Color.Transparent
+                    )
+                ),
+                start = Offset(left + 8.dp.toPx(), laserY),
+                end = Offset(left + boxSize - 8.dp.toPx(), laserY),
+                strokeWidth = 2.dp.toPx()
             )
         }
 
-        // Top Navigation Header with statusBarsPadding
-        Surface(
-            color = DeepNavy.copy(alpha = 0.85f),
+        // 3. Floating Liquid Glass Top Bar (Apple-Style)
+        val topBarShape = RoundedCornerShape(24.dp)
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(12.dp, topBarShape, ambientColor = Color.Black)
+                .clip(topBarShape)
+                .background(Color(0xD9060B18))
+                .border(1.2.dp, GlassBorderStandard, topBarShape)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                IconButton(onClick = onNavigateBack) {
+                // Circular Back Button
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
+                        .clickable(onClick = onNavigateBack),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = TextWhite
+                        tint = TextWhite,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = when (language) {
-                            Language.ENGLISH -> "Scout QR Passport Scanner"
-                            Language.TAMIL -> "சாரணர் QR பாஸ்போர்ட் ஸ்கேனர்"
-                            Language.HINDI -> "स्काउट क्यूआर पासपोर्ट स्कैनर"
+                            Language.ENGLISH -> "Scout QR Scanner"
+                            Language.TAMIL -> "ஸ்கவுட் QR ஸ்கேனர்"
+                            Language.HINDI -> "स्काउट क्यूआर स्कैनर"
                         },
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = TextWhite,
-                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "100% Offline Biometric & ECDSA Verifier",
+                        text = "Hardware ECDSA P-256 Verifier",
                         style = MaterialTheme.typography.labelSmall,
                         color = ElectricEmerald,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                LiquidGlassPill(
+                    text = "OFFLINE",
+                    isSelected = true,
+                    tintColor = ElectricEmerald
+                )
             }
         }
 
-        // Bottom Instruction Card / Feedback Banner with navigationBarsPadding
-        Surface(
-            color = DeepNavy.copy(alpha = 0.90f),
+        // 4. Floating Bottom Contour Glass Card
+        val entity = scannedEntity
+        ContourGlassCard(
+            borderBrush = if (entity != null) {
+                if (entity.signatureVerified) GlassBorderEmerald else GlassBorderStandard
+            } else GlassBorderStandard,
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, CardNavy)
+                .padding(16.dp)
         ) {
-            val entity = scannedEntity
             if (entity != null) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
                             imageVector = if (entity.signatureVerified) Icons.Default.CheckCircle else Icons.Default.Error,
                             contentDescription = null,
                             tint = if (entity.signatureVerified) ElectricEmerald else CrimsonAlert,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(26.dp)
                         )
                         Text(
                             text = if (entity.signatureVerified) {
@@ -317,15 +416,13 @@ fun QrScannerScreen(
                             } else {
                                 "Signature Verification Failed"
                             },
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = if (entity.signatureVerified) ElectricEmerald else CrimsonAlert,
-                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "${entity.athleteName} • ${entity.district} (${entity.sport})",
                         style = MaterialTheme.typography.bodyMedium,
@@ -333,6 +430,7 @@ fun QrScannerScreen(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
                     Text(
                         text = "Score: ${entity.avgFormScore}/100 • Key: ${entity.publicKeyFingerprint}",
                         style = MaterialTheme.typography.labelSmall,
@@ -343,7 +441,7 @@ fun QrScannerScreen(
                 }
             } else {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -353,16 +451,26 @@ fun QrScannerScreen(
                         tint = ElectricEmerald,
                         modifier = Modifier.size(26.dp)
                     )
-                    Text(
-                        text = when (language) {
-                            Language.ENGLISH -> "Align athlete's Signed QR Passport inside the target box"
-                            Language.TAMIL -> "வீரரின் கையொப்பமிட்ட QR பாஸ்போர்ட்டை கட்டத்திற்குள் பொருத்தவும்"
-                            Language.HINDI -> "खिलाड़ी के हस्ताक्षरित क्यूआर पासपोर्ट को बॉक्स के अंदर रखें"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextGray,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Align athlete's Signed QR Passport"
+                                Language.TAMIL -> "வீரரின் QR பாஸ்போர்ட்டை பொருத்தவும்"
+                                Language.HINDI -> "खिलाड़ी के क्यूआर पासपोर्ट को बॉक्स में रखें"
+                            },
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = TextWhite,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Offline ECDSA P-256 Verification Ready",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
