@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,6 +25,8 @@ import com.athlens.app.ui.onboarding.OnboardingScreen
 import com.athlens.app.ui.onboarding.OnboardingViewModel
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
+
+import com.athlens.app.ui.p2p.QrScannerScreen
 
 @Composable
 fun AthlensNavGraph(
@@ -74,6 +77,9 @@ fun AthlensNavGraph(
                 viewModel = dashboardViewModel,
                 onLaunchCameraCoach = { drill ->
                     navController.navigate(Screen.CameraCoach.route)
+                },
+                onLaunchQrScanner = {
+                    navController.navigate(Screen.QrScanner.route)
                 }
             )
         }
@@ -82,6 +88,28 @@ fun AthlensNavGraph(
             val cameraCoachViewModel: CameraCoachViewModel = viewModel(factory = factory)
             CameraCoachScreen(
                 viewModel = cameraCoachViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.QrScanner.route) {
+            val dashboardBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(Screen.Dashboard.route)
+            }
+            val dashboardViewModel: DashboardViewModel = viewModel(
+                viewModelStoreOwner = dashboardBackStackEntry,
+                factory = factory
+            )
+            val dashboardState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
+
+            QrScannerScreen(
+                passportCryptoManager = appContainer.passportCryptoManager,
+                language = dashboardState.activeLanguage,
+                onPassportScanned = { entity ->
+                    dashboardViewModel.saveReceivedPassport(entity)
+                },
                 onNavigateBack = {
                     navController.popBackStack()
                 }

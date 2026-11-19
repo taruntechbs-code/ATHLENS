@@ -14,6 +14,7 @@ app/build/
 *.apk
 *.ap_
 *.aab
-device_screen.png
+device_screen*.png
+ui.xml
 .vscode/
 

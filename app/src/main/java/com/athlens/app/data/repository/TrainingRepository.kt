@@ -8,4 +8,5 @@ interface TrainingRepository {
     fun getSessionCount(athleteId: String): Flow<Int>
     fun getAverageScore(athleteId: String): Flow<Double?>
     suspend fun recordSession(session: TrainingSession): Result<Unit>
+    fun getUnsyncedSessionCount(): Flow<Int>
 }

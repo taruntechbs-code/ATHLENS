@@ -84,6 +84,8 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.mediapipe.tasks.vision)
     implementation(libs.zxing.core)
+    implementation(libs.play.services.nearby)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
 

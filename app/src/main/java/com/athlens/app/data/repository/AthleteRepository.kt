@@ -1,5 +1,6 @@
 package com.athlens.app.data.repository
 
+import com.athlens.app.data.local.entity.ReceivedPassportEntity
 import com.athlens.app.domain.model.Achievement
 import com.athlens.app.domain.model.AthleteProfile
 import com.athlens.app.domain.model.GrowthMeasurement
@@ -18,4 +19,7 @@ interface AthleteRepository {
     suspend fun deleteAchievement(id: String): Result<Unit>
     fun getAchievements(athleteId: String): Flow<List<Achievement>>
     fun getVerifiedAchievementCount(athleteId: String): Flow<Int>
+    suspend fun saveReceivedPassport(passport: ReceivedPassportEntity): Result<Unit>
+    suspend fun deleteReceivedPassport(id: String): Result<Unit>
+    fun getReceivedPassports(): Flow<List<ReceivedPassportEntity>>
 }

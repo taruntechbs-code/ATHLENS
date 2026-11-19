@@ -50,6 +50,29 @@ object PassportSerializer {
         }
     }
 
+    fun parseCanonicalPayload(canonicalJson: String): PassportPayload? {
+        return try {
+            val obj = JSONObject(canonicalJson)
+            PassportPayload(
+                version = obj.optInt("v", 1),
+                athleteId = obj.optString("id", ""),
+                fullName = obj.optString("n", "Unknown Athlete"),
+                district = obj.optString("d", "Coimbatore"),
+                sport = obj.optString("s", "KABADDI"),
+                playingPosition = obj.optString("p", "Raider"),
+                ageMonths = obj.optInt("ageM", 0),
+                raeQuarter = obj.optString("rae", "Q1"),
+                totalSessions = obj.optInt("sess", 0),
+                avgScore = obj.optInt("avg", 0),
+                progressionDelta = if (obj.has("delta") && !obj.isNull("delta")) obj.optInt("delta") else null,
+                verifiedAchievements = obj.optInt("ach", 0),
+                issuedAtSeconds = obj.optLong("ts", System.currentTimeMillis() / 1000)
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     /**
      * Creates a tampered version of the payload (e.g. inflating form score)
      * without regenerating the signature, allowing judges/scouts to see cryptographic verification failure.

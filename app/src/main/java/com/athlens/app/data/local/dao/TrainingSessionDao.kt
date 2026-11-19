@@ -20,4 +20,13 @@ interface TrainingSessionDao {
 
     @Query("SELECT AVG(formScore) FROM training_sessions WHERE athleteId = :athleteId")
     fun getAverageScore(athleteId: String): Flow<Double?>
+
+    @Query("SELECT * FROM training_sessions WHERE synced = 0")
+    suspend fun getUnsyncedSessions(): List<TrainingSessionEntity>
+
+    @Query("UPDATE training_sessions SET synced = 1 WHERE id IN (:ids)")
+    suspend fun markSynced(ids: List<String>)
+
+    @Query("SELECT COUNT(*) FROM training_sessions WHERE synced = 0")
+    fun getUnsyncedCount(): Flow<Int>
 }

@@ -3,9 +3,11 @@ package com.athlens.app.data.repository
 import com.athlens.app.data.local.dao.AchievementDao
 import com.athlens.app.data.local.dao.AthleteProfileDao
 import com.athlens.app.data.local.dao.GrowthMeasurementDao
+import com.athlens.app.data.local.dao.ReceivedPassportDao
 import com.athlens.app.data.local.entity.AchievementEntity
 import com.athlens.app.data.local.entity.AthleteProfileEntity
 import com.athlens.app.data.local.entity.GrowthMeasurementEntity
+import com.athlens.app.data.local.entity.ReceivedPassportEntity
 import com.athlens.app.domain.model.Achievement
 import com.athlens.app.domain.model.AthleteProfile
 import com.athlens.app.domain.model.GrowthMeasurement
@@ -15,7 +17,8 @@ import kotlinx.coroutines.flow.map
 class AthleteRepositoryImpl(
     private val dao: AthleteProfileDao,
     private val growthDao: GrowthMeasurementDao,
-    private val achievementDao: AchievementDao
+    private val achievementDao: AchievementDao,
+    private val receivedPassportDao: ReceivedPassportDao
 ) : AthleteRepository {
 
     override fun getActiveProfile(): Flow<AthleteProfile?> {
@@ -99,5 +102,21 @@ class AthleteRepositoryImpl(
 
     override fun getVerifiedAchievementCount(athleteId: String): Flow<Int> {
         return achievementDao.getVerifiedAchievementCount(athleteId)
+    }
+
+    override suspend fun saveReceivedPassport(passport: ReceivedPassportEntity): Result<Unit> {
+        return runCatching {
+            receivedPassportDao.insertReceivedPassport(passport)
+        }
+    }
+
+    override suspend fun deleteReceivedPassport(id: String): Result<Unit> {
+        return runCatching {
+            receivedPassportDao.deleteReceivedPassport(id)
+        }
+    }
+
+    override fun getReceivedPassports(): Flow<List<ReceivedPassportEntity>> {
+        return receivedPassportDao.getReceivedPassports()
     }
 }

@@ -29,4 +29,8 @@ class TrainingRepositoryImpl(
             dao.insertSession(TrainingSessionEntity.fromDomainModel(session))
         }
     }
+
+    override fun getUnsyncedSessionCount(): Flow<Int> {
+        return dao.getUnsyncedCount()
+    }
 }

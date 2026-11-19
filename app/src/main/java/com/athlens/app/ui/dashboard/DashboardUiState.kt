@@ -1,5 +1,6 @@
 package com.athlens.app.ui.dashboard
 
+import com.athlens.app.data.local.entity.ReceivedPassportEntity
 import com.athlens.app.domain.maturity.MaturityContextReport
 import com.athlens.app.domain.model.Achievement
 import com.athlens.app.domain.model.AthleteProfile
@@ -19,5 +20,8 @@ data class DashboardUiState(
     val growthMeasurements: List<GrowthMeasurement> = emptyList(),
     val maturityReport: MaturityContextReport? = null,
     val achievements: List<Achievement> = emptyList(),
-    val signedPassport: SignedTalentPassport? = null
+    val signedPassport: SignedTalentPassport? = null,
+    val receivedPassports: List<ReceivedPassportEntity> = emptyList(),
+    val unsyncedCount: Int = 0,
+    val isSyncing: Boolean = false
 )

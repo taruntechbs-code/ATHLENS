@@ -1,15 +1,20 @@
 package com.athlens.app.ui.dashboard
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.athlens.app.data.local.entity.ReceivedPassportEntity
+import com.athlens.app.data.p2p.NearbyExchangeManager
 import com.athlens.app.data.repository.AthleteRepository
 import com.athlens.app.data.repository.TrainingRepository
 import com.athlens.app.data.security.PassportCryptoManager
+import com.athlens.app.data.sync.AthlensSyncWorker
 import com.athlens.app.domain.maturity.MaturityAssessmentEngine
 import com.athlens.app.domain.model.Achievement
 import com.athlens.app.domain.model.AchievementLevel
 import com.athlens.app.domain.model.GrowthMeasurement
 import com.athlens.app.domain.model.Language
+import com.athlens.app.domain.model.TrainingSession
 import com.athlens.app.domain.passport.PassportPayload
 import com.athlens.app.domain.passport.PassportSerializer
 import com.athlens.app.domain.passport.SignedTalentPassport
@@ -29,7 +34,9 @@ import kotlin.math.roundToInt
 class DashboardViewModel(
     private val athleteRepository: AthleteRepository,
     private val trainingRepository: TrainingRepository,
-    private val passportCryptoManager: PassportCryptoManager
+    private val passportCryptoManager: PassportCryptoManager,
+    val nearbyExchangeManager: NearbyExchangeManager,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _selectedTab = MutableStateFlow(DashboardTab.TRAIN)
@@ -45,18 +52,23 @@ class DashboardViewModel(
                     trainingRepository.getSessionCount(profile.id),
                     trainingRepository.getAverageScore(profile.id),
                     athleteRepository.getGrowthMeasurements(profile.id),
-                    athleteRepository.getAchievements(profile.id)
+                    athleteRepository.getAchievements(profile.id),
+                    athleteRepository.getReceivedPassports(),
+                    trainingRepository.getUnsyncedSessionCount()
                 ) { args ->
                     val tab = args[0] as DashboardTab
                     val manualLang = args[1] as? Language
                     @Suppress("UNCHECKED_CAST")
-                    val sessions = args[2] as List<com.athlens.app.domain.model.TrainingSession>
+                    val sessions = args[2] as List<TrainingSession>
                     val count = args[3] as Int
                     val avgScore = args[4] as? Double
                     @Suppress("UNCHECKED_CAST")
                     val measurements = args[5] as List<GrowthMeasurement>
                     @Suppress("UNCHECKED_CAST")
                     val achievements = args[6] as List<Achievement>
+                    @Suppress("UNCHECKED_CAST")
+                    val receivedPassports = args[7] as List<ReceivedPassportEntity>
+                    val unsyncedSessionCount = args[8] as Int
 
                     val resolvedLang = manualLang
                         ?: Language.fromCode(profile.languageCode)
@@ -103,6 +115,9 @@ class DashboardViewModel(
                         keyFingerprint = fingerprint
                     )
 
+                    val unsyncedPassports = receivedPassports.count { !it.synced }
+                    val totalUnsynced = unsyncedSessionCount + unsyncedPassports
+
                     DashboardUiState(
                         athleteProfile = profile,
                         currentTab = tab,
@@ -114,7 +129,9 @@ class DashboardViewModel(
                         growthMeasurements = measurements,
                         maturityReport = maturityReport,
                         achievements = achievements,
-                        signedPassport = signedPassport
+                        signedPassport = signedPassport,
+                        receivedPassports = receivedPassports,
+                        unsyncedCount = totalUnsynced
                     )
                 }
             } else {
@@ -204,5 +221,54 @@ class DashboardViewModel(
 
     fun simulateTamperedPayload(canonicalPayload: String): String {
         return PassportSerializer.tamperPayload(canonicalPayload)
+    }
+
+    // Phase 6: P2P & Scout Inbox Actions
+    fun startSharingPassport() {
+        val profile = uiState.value.athleteProfile ?: return
+        val signedPassport = uiState.value.signedPassport ?: return
+        nearbyExchangeManager.startSharingPassport(
+            senderName = profile.fullName,
+            signedEnvelopeJson = signedPassport.envelopeJson
+        )
+    }
+
+    fun startDiscovering() {
+        val profile = uiState.value.athleteProfile
+        val scoutName = profile?.fullName ?: "ATHLENS Scout"
+        nearbyExchangeManager.startDiscovering(scoutName) { received ->
+            saveReceivedPassport(received)
+        }
+    }
+
+    fun connectToEndpoint(endpointId: String) {
+        val profile = uiState.value.athleteProfile
+        val scoutName = profile?.fullName ?: "ATHLENS Scout"
+        nearbyExchangeManager.connectToEndpoint(endpointId, scoutName)
+    }
+
+    fun stopP2P() {
+        nearbyExchangeManager.stopAll()
+    }
+
+    fun saveReceivedPassport(entity: ReceivedPassportEntity) {
+        viewModelScope.launch {
+            athleteRepository.saveReceivedPassport(entity)
+        }
+    }
+
+    fun deleteReceivedPassport(id: String) {
+        viewModelScope.launch {
+            athleteRepository.deleteReceivedPassport(id)
+        }
+    }
+
+    fun triggerCloudSync() {
+        AthlensSyncWorker.triggerImmediateSync(appContext)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        nearbyExchangeManager.stopAll()
     }
 }

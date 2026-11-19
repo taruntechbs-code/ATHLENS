@@ -54,9 +54,13 @@ import com.athlens.app.ui.theme.TextWhite
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onLaunchCameraCoach: (DrillType) -> Unit = {},
+    onLaunchQrScanner: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val p2pState by viewModel.nearbyExchangeManager.state.collectAsStateWithLifecycle()
+    val discoveredEndpoints by viewModel.nearbyExchangeManager.discoveredEndpoints.collectAsStateWithLifecycle()
+    val statusMessage by viewModel.nearbyExchangeManager.statusMessage.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) {
         Box(
@@ -209,7 +213,22 @@ fun DashboardScreen(
                     language = uiState.activeLanguage
                 )
                 DashboardTab.SHARE_P2P -> ShareP2PTab(
-                    language = uiState.activeLanguage
+                    profile = uiState.athleteProfile,
+                    signedPassport = uiState.signedPassport,
+                    receivedPassports = uiState.receivedPassports,
+                    unsyncedCount = uiState.unsyncedCount,
+                    p2pState = p2pState,
+                    discoveredEndpoints = discoveredEndpoints,
+                    statusMessage = statusMessage,
+                    language = uiState.activeLanguage,
+                    onStartSharing = { viewModel.startSharingPassport() },
+                    onStopSharing = { viewModel.stopP2P() },
+                    onStartDiscovery = { viewModel.startDiscovering() },
+                    onStopDiscovery = { viewModel.stopP2P() },
+                    onConnectEndpoint = { id -> viewModel.connectToEndpoint(id) },
+                    onLaunchQrScanner = onLaunchQrScanner,
+                    onDeleteReceivedPassport = { id -> viewModel.deleteReceivedPassport(id) },
+                    onSyncNow = { viewModel.triggerCloudSync() }
                 )
             }
         }

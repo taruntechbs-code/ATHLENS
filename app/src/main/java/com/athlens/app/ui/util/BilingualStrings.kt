@@ -602,4 +602,143 @@ object BilingualStrings {
         Language.TAMIL -> "மூடு"
         Language.HINDI -> "बंद करें"
     }
+
+    // Phase 6: P2P Exchange, Scout Inbox & WorkManager Sync Strings
+    fun getSendPassportTab(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Send Passport"
+        Language.TAMIL -> "பாஸ்போர்ட் அனுப்பு"
+        Language.HINDI -> "पासपोर्ट भेजें"
+    }
+
+    fun getReceiveScoutTab(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Receive (Scout)"
+        Language.TAMIL -> "பெறு (சாரணர்)"
+        Language.HINDI -> "प्राप्त करें (स्काउट)"
+    }
+
+    fun getShareOfflineButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Share Offline via Nearby P2P"
+        Language.TAMIL -> "Nearby P2P வழியாக ஆஃப்லைனில் பகிர்"
+        Language.HINDI -> "Nearby P2P द्वारा ऑफ़लाइन साझा करें"
+    }
+
+    fun getStopSharingButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Stop Sharing"
+        Language.TAMIL -> "பகிர்வை நிறுத்து"
+        Language.HINDI -> "साझा करना बंद करें"
+    }
+
+    fun getConsentDialogTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Consent to Share Talent Passport"
+        Language.TAMIL -> "திறமை பாஸ்போர்ட் பகிர்வு ஒப்புதல்"
+        Language.HINDI -> "टैलेंट पासपोर्ट साझा सहमति"
+    }
+
+    fun getConsentDialogMessage(guardianName: String?, isMinor: Boolean, lang: Language): String = when (lang) {
+        Language.ENGLISH -> if (isMinor) {
+            "Minor Athlete Protection: Legal guardian consent authorized by $guardianName. Do you confirm sharing your authentic biometric and kinematic passport with nearby verified coaches/scouts via secure P2P?"
+        } else {
+            "Confirm sharing your authentic biometric and kinematic talent passport with nearby verified coaches/scouts via secure offline P2P?"
+        }
+        Language.TAMIL -> if (isMinor) {
+            "இளம் வீரர் பாதுகாப்பு: சட்டப்பூர்வ பாதுகாவலர் $guardianName ஒப்புதல் அளித்துள்ளார். பாதுகாப்பான P2P மூலம் அருகிலுள்ள பயிற்சியாளர்களுடன் உங்கள் பாஸ்போர்ட்டைப் பகிர ஒப்புக்கொள்கிறீர்களா?"
+        } else {
+            "பாதுகாப்பான ஆஃப்லைன் P2P மூலம் அருகிலுள்ள பயிற்சியாளர்களுடன் உங்கள் உண்மையான திறமை பாஸ்போர்ட்டைப் பகிர ஒப்புக்கொள்கிறீர்களா?"
+        }
+        Language.HINDI -> if (isMinor) {
+            "बाल खिलाड़ी संरक्षण: अभिभावक $guardianName द्वारा अधिकृत। क्या आप सुरक्षित P2P द्वारा निकटवर्ती प्रशिक्षकों के साथ अपना प्रामाणिक पासपोर्ट साझा करने की पुष्टि करते हैं?"
+        } else {
+            "क्या आप सुरक्षित ऑफ़लाइन P2P द्वारा निकटवर्ती स्काउट्स के साथ अपना प्रामाणिक टैलेंट पासपोर्ट साझा करने की पुष्टि करते हैं?"
+        }
+    }
+
+    fun getApproveButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Approve & Share"
+        Language.TAMIL -> "ஒப்புதல் & பகிர்"
+        Language.HINDI -> "स्वीकार करें व साझा करें"
+    }
+
+    fun getScanNearbyButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Scan Nearby Athletes (P2P)"
+        Language.TAMIL -> "அருகிலுள்ள வீரர்களை ஸ்கேன் செய் (P2P)"
+        Language.HINDI -> "निकटवर्ती खिलाड़ियों को खोजें (P2P)"
+    }
+
+    fun getScanQrButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Scan QR Passport"
+        Language.TAMIL -> "QR பாஸ்போர்ட்டை ஸ்கேன் செய்"
+        Language.HINDI -> "QR पासपोर्ट स्कैन करें"
+    }
+
+    fun getStopScanButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Stop Scanning"
+        Language.TAMIL -> "ஸ்கேன் செய்வதை நிறுத்து"
+        Language.HINDI -> "स्कैनिंग रोकें"
+    }
+
+    fun getDiscoveredAthletesTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Discovered Nearby Athletes"
+        Language.TAMIL -> "கண்டறியப்பட்ட அருகிலுள்ள வீரர்கள்"
+        Language.HINDI -> "निकटवर्ती पाए गए खिलाड़ी"
+    }
+
+    fun getNoAthletesDiscovered(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Searching for nearby ATHLENS devices broadcasting offline..."
+        Language.TAMIL -> "ஆஃப்லைனில் ஒளிபரப்பும் அருகிலுள்ள ATHLENS சாதனங்களைத் தேடுகிறது..."
+        Language.HINDI -> "ऑफ़लाइन प्रसारित हो रहे निकटवर्ती ATHLENS उपकरणों की खोज जारी है..."
+    }
+
+    fun getConnectAndReceiveButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Connect & Receive"
+        Language.TAMIL -> "இணைந்து பெறு"
+        Language.HINDI -> "कनेक्ट व प्राप्त करें"
+    }
+
+    fun getScoutInboxTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Verified Scout Inbox"
+        Language.TAMIL -> "சரிபார்க்கப்பட்ட சாரணர் இன்பாக்ஸ்"
+        Language.HINDI -> "सत्यापित स्काउट इनबॉक्स"
+    }
+
+    fun getNoPassportsReceived(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "No passports received yet. Scan an athlete's QR or connect via Nearby P2P."
+        Language.TAMIL -> "பாஸ்போர்ட்கள் எதுவும் பெறப்படவில்லை. QR குறியீட்டை ஸ்கேன் செய்யவும் அல்லது Nearby P2P மூலம் இணைக்கவும்."
+        Language.HINDI -> "अभी तक कोई पासपोर्ट प्राप्त नहीं हुआ। क्यूआर कोड स्कैन करें या Nearby P2P से कनेक्ट करें।"
+    }
+
+    fun getEcdsaVerifiedBadge(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "ECDSA Verified Offline"
+        Language.TAMIL -> "ECDSA ஆஃப்லைனில் சரிபார்க்கப்பட்டது"
+        Language.HINDI -> "ECDSA ऑफ़लाइन सत्यापित"
+    }
+
+    fun getSignatureInvalidBadge(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Signature Invalid"
+        Language.TAMIL -> "கையொப்பம் தவறானது"
+        Language.HINDI -> "हस्ताक्षर अमान्य"
+    }
+
+    fun getCloudSyncTitle(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "WorkManager Cloud Sync"
+        Language.TAMIL -> "WorkManager கிளவுட் ஒத்திசைவு"
+        Language.HINDI -> "WorkManager क्लाउड सिंक"
+    }
+
+    fun getPendingRecordsLabel(count: Int, lang: Language): String = when (lang) {
+        Language.ENGLISH -> "$count records pending offline"
+        Language.TAMIL -> "$count பதிவுகள் ஆஃப்லைனில் நிலுவையில் உள்ளன"
+        Language.HINDI -> "$count रिकॉर्ड ऑफ़लाइन लंबित"
+    }
+
+    fun getAllSyncedLabel(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "All records synced to cloud"
+        Language.TAMIL -> "அனைத்து பதிவுகளும் கிளவுடுடன் ஒத்திசைக்கப்பட்டன"
+        Language.HINDI -> "सभी रिकॉर्ड क्लाउड पर सिंक हो चुके हैं"
+    }
+
+    fun getSyncNowButton(lang: Language): String = when (lang) {
+        Language.ENGLISH -> "Sync Now"
+        Language.TAMIL -> "இப்போது ஒத்திசை"
+        Language.HINDI -> "अभी सिंक करें"
+    }
 }
