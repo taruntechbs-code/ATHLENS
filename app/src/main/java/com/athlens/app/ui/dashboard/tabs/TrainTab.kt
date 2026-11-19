@@ -206,10 +206,10 @@ fun TrainTab(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (language == Language.TAMIL) {
-                        "MediaPipe மூலம் நிகழ்நேர 33-மூட்டு தோரணை பகுப்பாய்வு & கபடி/கோ-கோ கோண பிழை திருத்தம். இணையம் தேவையில்லை."
-                    } else {
-                        "Real-time 33-point pose estimation and sport kinematic analysis. Sub-20ms feedback on device without internet."
+                    text = when (language) {
+                        Language.ENGLISH -> "Real-time 33-point pose estimation and sport kinematic analysis. Sub-20ms feedback on device without internet."
+                        Language.TAMIL -> "MediaPipe மூலம் நிகழ்நேர 33-மூட்டு தோரணை பகுப்பாய்வு & கபடி/கோ-கோ கோண பிழை திருத்தம். இணையம் தேவையில்லை."
+                        Language.HINDI -> "मीडियापाइप द्वारा 33-बिंदु मुद्रा विश्लेषण और खेल-विशिष्ट कोण सुधार। बिना इंटरनेट डिवाइस पर लाइव।"
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextGray
@@ -219,7 +219,11 @@ fun TrainTab(
 
                 // Drill Selector Chips
                 Text(
-                    text = if (language == Language.TAMIL) "பயிற்சி வகை / Select Drill:" else "Select Drill:",
+                    text = when (language) {
+                        Language.ENGLISH -> "Select Drill:"
+                        Language.TAMIL -> "பயிற்சி வகை:"
+                        Language.HINDI -> "अभ्यास चुनें:"
+                    },
                     style = MaterialTheme.typography.titleSmall,
                     color = ElectricEmerald
                 )
@@ -235,7 +239,7 @@ fun TrainTab(
                             onClick = { selectedDrill = drill },
                             label = {
                                 Text(
-                                    text = if (language == Language.TAMIL) drill.displayNameTa else drill.displayNameEn,
+                                    text = drill.getDisplayName(language),
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             },
@@ -275,7 +279,7 @@ fun TrainTab(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${BilingualStrings.getStartSession(language)} (${if (language == Language.TAMIL) selectedDrill.displayNameTa else selectedDrill.displayNameEn})",
+                        text = "${BilingualStrings.getStartSession(language)} (${selectedDrill.getDisplayName(language)})",
                         style = MaterialTheme.typography.labelLarge
                     )
                 }

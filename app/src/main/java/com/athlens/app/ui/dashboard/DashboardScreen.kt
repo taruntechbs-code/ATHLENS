@@ -114,7 +114,11 @@ fun DashboardScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (uiState.activeLanguage == Language.TAMIL) "தமிழ்" else "EN",
+                                text = when (uiState.activeLanguage) {
+                                    Language.ENGLISH -> "EN"
+                                    Language.TAMIL -> "தமிழ்"
+                                    Language.HINDI -> "हिन्दी"
+                                },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = TextWhite
                             )
@@ -180,9 +184,14 @@ fun DashboardScreen(
                     totalSessions = uiState.totalSessions,
                     averageScore = uiState.averageFormScore,
                     latestSessionScore = uiState.recentSessions.firstOrNull()?.formScore,
-                    language = uiState.activeLanguage
+                    maturityReport = uiState.maturityReport,
+                    language = uiState.activeLanguage,
+                    onLogGrowthMeasurement = { h, w ->
+                        viewModel.logGrowthMeasurement(h, w)
+                    }
                 )
                 DashboardTab.NUTRITION -> NutritionTab(
+                    sport = uiState.athleteProfile?.sport ?: com.athlens.app.domain.model.Sport.KABADDI,
                     language = uiState.activeLanguage
                 )
                 DashboardTab.SHARE_P2P -> ShareP2PTab(

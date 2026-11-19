@@ -281,7 +281,7 @@ fun Step2ProfileDetails(
                         onClick = { onSportChanged(sport) },
                         label = {
                             Text(
-                                text = "${sport.displayNameEn} (${sport.displayNameTa})",
+                                text = sport.getDisplayName(language),
                                 style = MaterialTheme.typography.labelMedium
                             )
                         },
@@ -321,7 +321,7 @@ fun Step2ProfileDetails(
                         onClick = { onPositionChanged(pos.id) },
                         label = {
                             Text(
-                                text = if (language == Language.TAMIL) pos.displayNameTa else pos.displayNameEn,
+                                text = pos.getDisplayName(language),
                                 style = MaterialTheme.typography.labelSmall
                             )
                         },

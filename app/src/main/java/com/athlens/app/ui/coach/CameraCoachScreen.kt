@@ -255,7 +255,11 @@ fun CameraCoachScreen(
             onToggleCamera = { viewModel.toggleCamera() },
             onToggleVoice = { viewModel.toggleVoiceMute() },
             onToggleLanguage = {
-                val nextLang = if (uiState.activeLanguage == Language.TAMIL) Language.ENGLISH else Language.TAMIL
+                val nextLang = when (uiState.activeLanguage) {
+                    Language.ENGLISH -> Language.TAMIL
+                    Language.TAMIL -> Language.HINDI
+                    Language.HINDI -> Language.ENGLISH
+                }
                 viewModel.setLanguage(nextLang)
             },
             onSelectDrill = { viewModel.setDrill(it) },
@@ -415,7 +419,11 @@ private fun TopCoachHud(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     ) {
                         Text(
-                            text = if (language == Language.TAMIL) "தமிழ்" else "EN",
+                            text = when (language) {
+                                Language.ENGLISH -> "EN"
+                                Language.TAMIL -> "தமிழ்"
+                                Language.HINDI -> "हिन्दी"
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = ElectricEmerald
                         )
@@ -468,7 +476,7 @@ private fun TopCoachHud(
                     onClick = { onSelectDrill(drill) },
                     label = {
                         Text(
-                            text = if (language == Language.TAMIL) drill.displayNameTa else drill.displayNameEn,
+                            text = drill.getDisplayName(language),
                             style = MaterialTheme.typography.labelSmall
                         )
                     },

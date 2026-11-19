@@ -75,14 +75,18 @@ fun Step1LanguageRole(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = if (selectedLanguage == Language.TAMIL) "மொழி / Language" else "Language / மொழி",
+                    text = when (selectedLanguage) {
+                        Language.ENGLISH -> "Select Language"
+                        Language.TAMIL -> "மொழியைத் தேர்ந்தெடுக்கவும்"
+                        Language.HINDI -> "भाषा चुनें"
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     color = ElectricEmerald
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Language.entries.forEach { lang ->
                         val isSelected = lang == selectedLanguage
@@ -91,8 +95,8 @@ fun Step1LanguageRole(
                             onClick = { onLanguageSelected(lang) },
                             label = {
                                 Text(
-                                    text = "${lang.displayName} (${lang.labelTamil})",
-                                    style = MaterialTheme.typography.labelLarge
+                                    text = lang.nativeName,
+                                    style = MaterialTheme.typography.labelMedium
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
@@ -115,7 +119,11 @@ fun Step1LanguageRole(
         // Role Selection Section
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                text = if (selectedLanguage == Language.TAMIL) "உங்கள் பங்கு / Select Role" else "Your Role / பங்கு",
+                text = when (selectedLanguage) {
+                    Language.ENGLISH -> "Select Your Role"
+                    Language.TAMIL -> "உங்கள் பங்கைத் தேர்ந்தெடுக்கவும்"
+                    Language.HINDI -> "अपनी भूमिका चुनें"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = ElectricEmerald
             )
@@ -146,21 +154,27 @@ private fun RoleCard(
     }
 
     val subtitle = when (role) {
-        Role.ATHLETE -> if (currentLanguage == Language.TAMIL) {
-            "களத்தில் களமிறங்கும் கபடி / கோ-கோ வீரர்"
-        } else {
-            "Player training and building verified athletic passport"
+        Role.ATHLETE -> when (currentLanguage) {
+            Language.ENGLISH -> "Player training and building verified athletic passport"
+            Language.TAMIL -> "களத்தில் களமிறங்கும் கபடி / கோ-கோ வீரர்"
+            Language.HINDI -> "प्रशिक्षण लेने और सत्यापित एथलेटिक पासपोर्ट बनाने वाले खिलाड़ी"
         }
-        Role.COACH -> if (currentLanguage == Language.TAMIL) {
-            "அணி மற்றும் வீரர்களை வழிநடத்தும் பயிற்சியாளர்"
-        } else {
-            "Trainer guiding players with AI biomechanics analysis"
+        Role.COACH -> when (currentLanguage) {
+            Language.ENGLISH -> "Trainer guiding players with AI biomechanics analysis"
+            Language.TAMIL -> "அணி மற்றும் வீரர்களை வழிநடத்தும் பயிற்சியாளர்"
+            Language.HINDI -> "एआई बायोमैकेनिक्स विश्लेषण से मार्गदर्शन करने वाले कोच"
         }
-        Role.SCOUT -> if (currentLanguage == Language.TAMIL) {
-            "கிராமப்புற திறமைகளை அடையாளம் காணும் ஸ்கவுட்"
-        } else {
-            "Talent scout discovering high-potential rural athletes"
+        Role.SCOUT -> when (currentLanguage) {
+            Language.ENGLISH -> "Talent scout discovering high-potential rural athletes"
+            Language.TAMIL -> "கிராமப்புற திறமைகளை அடையாளம் காணும் ஸ்கவுட்"
+            Language.HINDI -> "जमीनी स्तर पर प्रतिभाशाली खिलाड़ियों की पहचान करने वाले स्काउट"
         }
+    }
+
+    val roleTitle = when (currentLanguage) {
+        Language.ENGLISH -> role.displayNameEn
+        Language.TAMIL -> "${role.displayNameEn} • ${role.displayNameTa}"
+        Language.HINDI -> "${role.displayNameEn} • ${role.displayNameHi}"
     }
 
     Card(
@@ -188,7 +202,7 @@ private fun RoleCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${role.displayNameEn} • ${role.displayNameTa}",
+                    text = roleTitle,
                     style = MaterialTheme.typography.titleMedium,
                     color = if (isSelected) TextWhite else TextGray
                 )

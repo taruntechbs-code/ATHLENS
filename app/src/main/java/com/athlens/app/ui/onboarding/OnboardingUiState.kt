@@ -6,7 +6,7 @@ import com.athlens.app.domain.model.Sport
 
 data class OnboardingUiState(
     val currentStep: Int = 1,
-    val language: Language = Language.TAMIL,
+    val language: Language = Language.ENGLISH,
     val selectedRole: Role = Role.ATHLETE,
     val fullName: String = "",
     val dateOfBirthMillis: Long = 0L,

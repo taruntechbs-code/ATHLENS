@@ -79,7 +79,11 @@ fun ShareP2PTab(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = if (language == Language.TAMIL) "ஆஃப்லைன் திறமை பகிர்வு (P2P)" else "Offline Talent Exchange (P2P)",
+                            text = when (language) {
+                                Language.ENGLISH -> "Offline Talent Exchange (P2P)"
+                                Language.TAMIL -> "ஆஃப்லைன் திறமை பகிர்வு (P2P)"
+                                Language.HINDI -> "ऑफ़लाइन टैलेंट एक्सचेंज (P2P)"
+                            },
                             style = MaterialTheme.typography.titleLarge,
                             color = TextWhite
                         )
@@ -101,10 +105,10 @@ fun ShareP2PTab(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (language == Language.TAMIL) {
-                        "4G/5G இணைய சேவை இல்லாத தொலைதூர கிராமப்புற மைதானங்களிலும், Wi-Fi Direct மற்றும் BLE வழியாக ஸ்கவுட்களுக்கு தடகள பாஸ்போர்ட்டை பாதுகாப்பாக பகிரும் தொழில்நுட்பம்."
-                    } else {
-                        "Decentralized peer-to-peer athlete discovery network. Transfer cryptographically signed sports passports to scouts and coaches on remote grounds without mobile internet."
+                    text = when (language) {
+                        Language.ENGLISH -> "Decentralized peer-to-peer athlete discovery network. Transfer cryptographically signed sports passports to scouts and coaches on remote grounds without mobile internet."
+                        Language.TAMIL -> "4G/5G இணைய சேவை இல்லாத தொலைதூர கிராமப்புற மைதானங்களிலும், Wi-Fi Direct மற்றும் BLE வழியாக ஸ்கவுட்களுக்கு தடகள பாஸ்போர்ட்டை பாதுகாப்பாக பகிரும் தொழில்நுட்பம்."
+                        Language.HINDI -> "बिना इंटरनेट सुदूर ग्रामीण मैदानों पर भी वाई-फाई डायरेक्ट और बीएलई द्वारा स्काउट्स व कोचों के साथ डिजिटल स्पोर्ट्स पासपोर्ट सुरक्षित रूप से साझा करें।"
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextGray
@@ -114,7 +118,11 @@ fun ShareP2PTab(
 
         // P2P Architecture Capabilities
         Text(
-            text = if (language == Language.TAMIL) "ஆஃப்லைன் பரிமாற்ற அம்சங்கள் / P2P Mesh Features" else "Offline Exchange Capabilities",
+            text = when (language) {
+                Language.ENGLISH -> "Offline Exchange Capabilities"
+                Language.TAMIL -> "ஆஃப்லைன் பரிமாற்ற அம்சங்கள்"
+                Language.HINDI -> "ऑफ़लाइन विनिमय क्षमताएं"
+            },
             style = MaterialTheme.typography.titleMedium,
             color = ElectricEmerald
         )

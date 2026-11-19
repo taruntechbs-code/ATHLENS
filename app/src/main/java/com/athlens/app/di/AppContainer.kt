@@ -29,7 +29,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val athleteRepository: AthleteRepository by lazy {
-        AthleteRepositoryImpl(database.athleteProfileDao())
+        AthleteRepositoryImpl(database.athleteProfileDao(), database.growthMeasurementDao())
     }
 
     override val trainingRepository: TrainingRepository by lazy {

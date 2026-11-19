@@ -178,7 +178,11 @@ private fun OnboardingHeader(
                     color = ElectricEmerald
                 )
                 Text(
-                    text = if (language == Language.TAMIL) "படி $currentStep / $totalSteps" else "Step $currentStep of $totalSteps",
+                    text = when (language) {
+                        Language.ENGLISH -> "Step $currentStep of $totalSteps"
+                        Language.TAMIL -> "படி $currentStep / $totalSteps"
+                        Language.HINDI -> "चरण $currentStep / $totalSteps"
+                    },
                     style = MaterialTheme.typography.labelLarge,
                     color = TextGray
                 )

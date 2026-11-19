@@ -1,13 +1,17 @@
 package com.athlens.app.data.repository
 
 import com.athlens.app.data.local.dao.AthleteProfileDao
+import com.athlens.app.data.local.dao.GrowthMeasurementDao
 import com.athlens.app.data.local.entity.AthleteProfileEntity
+import com.athlens.app.data.local.entity.GrowthMeasurementEntity
 import com.athlens.app.domain.model.AthleteProfile
+import com.athlens.app.domain.model.GrowthMeasurement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class AthleteRepositoryImpl(
-    private val dao: AthleteProfileDao
+    private val dao: AthleteProfileDao,
+    private val growthDao: GrowthMeasurementDao
 ) : AthleteRepository {
 
     override fun getActiveProfile(): Flow<AthleteProfile?> {
@@ -40,6 +44,34 @@ class AthleteRepositoryImpl(
     override suspend fun clearAllProfiles(): Result<Unit> {
         return runCatching {
             dao.deleteAllProfiles()
+        }
+    }
+
+    override suspend fun recordGrowthMeasurement(measurement: GrowthMeasurement): Result<Unit> {
+        return runCatching {
+            growthDao.insertMeasurement(
+                GrowthMeasurementEntity(
+                    id = measurement.id,
+                    athleteId = measurement.athleteId,
+                    heightCm = measurement.heightCm,
+                    weightKg = measurement.weightKg,
+                    recordedAt = measurement.recordedAt
+                )
+            )
+        }
+    }
+
+    override fun getGrowthMeasurements(athleteId: String): Flow<List<GrowthMeasurement>> {
+        return growthDao.getMeasurementsForAthlete(athleteId).map { list ->
+            list.map {
+                GrowthMeasurement(
+                    id = it.id,
+                    athleteId = it.athleteId,
+                    heightCm = it.heightCm,
+                    weightKg = it.weightKg,
+                    recordedAt = it.recordedAt
+                )
+            }
         }
     }
 }

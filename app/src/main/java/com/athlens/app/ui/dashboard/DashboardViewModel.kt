@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.athlens.app.data.repository.AthleteRepository
 import com.athlens.app.data.repository.TrainingRepository
+import com.athlens.app.domain.maturity.MaturityAssessmentEngine
+import com.athlens.app.domain.model.GrowthMeasurement
 import com.athlens.app.domain.model.Language
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModel(
@@ -32,10 +35,26 @@ class DashboardViewModel(
                     _manualLanguage,
                     trainingRepository.getSessionsForAthlete(profile.id),
                     trainingRepository.getSessionCount(profile.id),
-                    trainingRepository.getAverageScore(profile.id)
-                ) { tab, manualLang, sessions, count, avgScore ->
+                    trainingRepository.getAverageScore(profile.id),
+                    athleteRepository.getGrowthMeasurements(profile.id)
+                ) { args ->
+                    val tab = args[0] as DashboardTab
+                    val manualLang = args[1] as? Language
+                    @Suppress("UNCHECKED_CAST")
+                    val sessions = args[2] as List<com.athlens.app.domain.model.TrainingSession>
+                    val count = args[3] as Int
+                    val avgScore = args[4] as? Double
+                    @Suppress("UNCHECKED_CAST")
+                    val measurements = args[5] as List<GrowthMeasurement>
+
                     val resolvedLang = manualLang
                         ?: Language.fromCode(profile.languageCode)
+
+                    val maturityReport = MaturityAssessmentEngine.assess(
+                        dateOfBirthMillis = profile.dateOfBirth,
+                        measurements = measurements,
+                        sessions = sessions
+                    )
 
                     DashboardUiState(
                         athleteProfile = profile,
@@ -44,7 +63,9 @@ class DashboardViewModel(
                         activeLanguage = resolvedLang,
                         recentSessions = sessions,
                         totalSessions = count,
-                        averageFormScore = avgScore
+                        averageFormScore = avgScore,
+                        growthMeasurements = measurements,
+                        maturityReport = maturityReport
                     )
                 }
             } else {
@@ -53,7 +74,7 @@ class DashboardViewModel(
                         athleteProfile = null,
                         currentTab = tab,
                         isLoading = false,
-                        activeLanguage = manualLang ?: Language.TAMIL
+                        activeLanguage = manualLang ?: Language.ENGLISH
                     )
                 }
             }
@@ -69,11 +90,30 @@ class DashboardViewModel(
 
     fun toggleLanguage() {
         val current = uiState.value.activeLanguage
-        val next = if (current == Language.TAMIL) Language.ENGLISH else Language.TAMIL
+        val next = when (current) {
+            Language.ENGLISH -> Language.TAMIL
+            Language.TAMIL -> Language.HINDI
+            Language.HINDI -> Language.ENGLISH
+        }
         _manualLanguage.update { next }
 
         viewModelScope.launch {
             athleteRepository.updateLanguage(next.code)
+        }
+    }
+
+    fun logGrowthMeasurement(heightCm: Float, weightKg: Float) {
+        val profile = uiState.value.athleteProfile ?: return
+        viewModelScope.launch {
+            athleteRepository.recordGrowthMeasurement(
+                GrowthMeasurement(
+                    id = UUID.randomUUID().toString(),
+                    athleteId = profile.id,
+                    heightCm = heightCm,
+                    weightKg = weightKg,
+                    recordedAt = System.currentTimeMillis()
+                )
+            )
         }
     }
 }

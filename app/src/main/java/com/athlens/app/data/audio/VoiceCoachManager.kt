@@ -12,7 +12,7 @@ import java.util.Locale
 
 class VoiceCoachManager(
     private val context: Context,
-    private var language: Language = Language.TAMIL
+    private var language: Language = Language.ENGLISH
 ) : TextToSpeech.OnInitListener {
 
     companion object {
@@ -83,23 +83,34 @@ class VoiceCoachManager(
 
     private fun applyLanguage(lang: Language) {
         val targetLocale = when (lang) {
-            Language.TAMIL -> Locale("ta", "IN")
             Language.ENGLISH -> Locale("en", "IN")
+            Language.TAMIL -> Locale("ta", "IN")
+            Language.HINDI -> Locale("hi", "IN")
         }
 
         val result = tts?.setLanguage(targetLocale)
         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
             Log.w(TAG, "Target locale $targetLocale not supported or missing data. Result code: $result")
-            // Fallback strategy: if Tamil is not available, try generic Tamil or English
-            if (lang == Language.TAMIL) {
-                val genericTamil = Locale("ta")
-                val genericResult = tts?.setLanguage(genericTamil)
-                if (genericResult == TextToSpeech.LANG_MISSING_DATA || genericResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.w(TAG, "Generic Tamil unavailable, falling back to Indian English")
-                    tts?.setLanguage(Locale("en", "IN"))
+            when (lang) {
+                Language.HINDI -> {
+                    val genericHindi = Locale("hi")
+                    val genericResult = tts?.setLanguage(genericHindi)
+                    if (genericResult == TextToSpeech.LANG_MISSING_DATA || genericResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.w(TAG, "Generic Hindi unavailable, falling back to Indian English")
+                        tts?.setLanguage(Locale("en", "IN"))
+                    }
                 }
-            } else {
-                tts?.setLanguage(Locale.US)
+                Language.TAMIL -> {
+                    val genericTamil = Locale("ta")
+                    val genericResult = tts?.setLanguage(genericTamil)
+                    if (genericResult == TextToSpeech.LANG_MISSING_DATA || genericResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.w(TAG, "Generic Tamil unavailable, falling back to Indian English")
+                        tts?.setLanguage(Locale("en", "IN"))
+                    }
+                }
+                Language.ENGLISH -> {
+                    tts?.setLanguage(Locale.US)
+                }
             }
         } else {
             Log.i(TAG, "TTS configured with locale: $targetLocale")

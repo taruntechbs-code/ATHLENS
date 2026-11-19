@@ -37,7 +37,7 @@ data class CameraCoachUiState(
     val isSavingSession: Boolean = false,
     val sessionSavedSuccessfully: Boolean = false,
     val latestSavedScore: Int = 0,
-    val activeLanguage: Language = Language.TAMIL,
+    val activeLanguage: Language = Language.ENGLISH,
     val isVoiceMuted: Boolean = false,
     val athleteName: String = "Athlete",
     val athleteId: String = ""

@@ -16,7 +16,7 @@ data class AthleteProfileEntity(
     val district: String = "Coimbatore",
     val sport: String,
     val playingPosition: String,
-    val languageCode: String,
+    val languageCode: String = "en",
     val isMinor: Boolean,
     val guardianName: String?,
     val guardianConsentGiven: Boolean,

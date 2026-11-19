@@ -4,17 +4,24 @@ enum class PlayingPosition(
     val id: String,
     val sport: Sport,
     val displayNameEn: String,
-    val displayNameTa: String
+    val displayNameTa: String,
+    val displayNameHi: String
 ) {
     // Kabaddi
-    RAIDER("RAIDER", Sport.KABADDI, "Raider", "ரெய்டர்"),
-    DEFENDER("DEFENDER", Sport.KABADDI, "Defender", "தடுப்பாளர்"),
-    ALL_ROUNDER_KABADDI("ALL_ROUNDER", Sport.KABADDI, "All-Rounder", "ஆல்-ரவுண்டர்"),
+    RAIDER("RAIDER", Sport.KABADDI, "Raider", "ரெய்டர்", "रेडर"),
+    DEFENDER("DEFENDER", Sport.KABADDI, "Defender", "தடுப்பாளர்", "डिफेंडर"),
+    ALL_ROUNDER_KABADDI("ALL_ROUNDER", Sport.KABADDI, "All-Rounder", "ஆல்-ரவுண்டர்", "ऑल-राउंडर"),
 
     // Kho-Kho
-    CHASER("CHASER", Sport.KHO_KHO, "Chaser", "சேஸர்"),
-    RUNNER("RUNNER", Sport.KHO_KHO, "Runner", "ரன்னர்"),
-    ALL_ROUNDER_KHO_KHO("ALL_ROUNDER", Sport.KHO_KHO, "All-Rounder", "ஆல்-ரவுண்டர்");
+    CHASER("CHASER", Sport.KHO_KHO, "Chaser", "சேஸர்", "चेज़र"),
+    RUNNER("RUNNER", Sport.KHO_KHO, "Runner", "ரன்னர்", "रनर"),
+    ALL_ROUNDER_KHO_KHO("ALL_ROUNDER", Sport.KHO_KHO, "All-Rounder", "ஆல்-ரவுண்டர்", "ऑल-राउंडर");
+
+    fun getDisplayName(lang: Language): String = when (lang) {
+        Language.ENGLISH -> displayNameEn
+        Language.TAMIL -> displayNameTa
+        Language.HINDI -> displayNameHi
+    }
 
     companion object {
         fun positionsFor(sport: Sport): List<PlayingPosition> {

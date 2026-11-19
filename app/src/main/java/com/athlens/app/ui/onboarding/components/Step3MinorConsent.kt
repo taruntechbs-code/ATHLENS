@@ -89,19 +89,19 @@ fun Step3MinorConsent(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = if (language == Language.TAMIL) {
-                                    "இளம்பருவ வீரர் பாதுகாப்பு அறிவிப்பு ($calculatedAge வயது)"
-                                } else {
-                                    "Minor Athlete Protection Notice (Age $calculatedAge)"
+                                text = when (language) {
+                                    Language.ENGLISH -> "Minor Athlete Protection Notice (Age $calculatedAge)"
+                                    Language.TAMIL -> "இளம்பருவ வீரர் பாதுகாப்பு அறிவிப்பு ($calculatedAge வயது)"
+                                    Language.HINDI -> "नाबालिग खिलाड़ी सुरक्षा सूचना (आयु $calculatedAge वर्ष)"
                                 },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = WarmAmber
                             )
                             Text(
-                                text = if (language == Language.TAMIL) {
-                                    "தமிழ்நாடு விளையாட்டுக் கொள்கை வழிகாட்டுதல்"
-                                } else {
-                                    "Mandatory Grassroots Sports Policy Compliance"
+                                text = when (language) {
+                                    Language.ENGLISH -> "Mandatory Grassroots Sports Policy Compliance"
+                                    Language.TAMIL -> "தமிழ்நாடு விளையாட்டுக் கொள்கை வழிகாட்டுதல்"
+                                    Language.HINDI -> "अनिवार्य खेल नीति अनुपालन"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextMuted
@@ -125,7 +125,11 @@ fun Step3MinorConsent(
                 label = { Text(BilingualStrings.getGuardianNameLabel(language)) },
                 placeholder = {
                     Text(
-                        if (language == Language.TAMIL) "எ.கா: சு. ரங்கநாதன் (தந்தை)" else "e.g. S. Ranganathan (Father)",
+                        when (language) {
+                            Language.ENGLISH -> "e.g. S. Ranganathan (Father)"
+                            Language.TAMIL -> "எ.கா: சு. ரங்கநாதன் (தந்தை)"
+                            Language.HINDI -> "उदा. एस. रंगनाथन (पिता)"
+                        },
                         color = TextMuted
                     )
                 },
@@ -165,10 +169,10 @@ fun Step3MinorConsent(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (language == Language.TAMIL) {
-                            "நான் இந்த வீரரின் சட்டப்பூர்வ பாதுகாவலர் என்பதை உறுதிசெய்து, தடகள பாஸ்போர்ட் மற்றும் பயிற்சி தரவு சேமிப்பிற்கு ஒப்புதல் அளிக்கிறேன்."
-                        } else {
-                            "I confirm I am the legal guardian and grant full authorization for sports passport & training telemetry processing."
+                        text = when (language) {
+                            Language.ENGLISH -> "I confirm I am the legal guardian and grant full authorization for sports passport & training telemetry processing."
+                            Language.TAMIL -> "நான் இந்த வீரரின் சட்டப்பூர்வ பாதுகாவலர் என்பதை உறுதிசெய்து, தடகள பாஸ்போர்ட் மற்றும் பயிற்சி தரவு சேமிப்பிற்கு ஒப்புதல் அளிக்கிறேன்."
+                            Language.HINDI -> "मैं पुष्टि करता/करती हूँ कि मैं इस खिलाड़ी का कानूनी अभिभावक हूँ और स्पोर्ट्स पासपोर्ट व प्रशिक्षण टेलीमेट्री के लिए पूर्ण सहमति देता/देती हूँ।"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = if (guardianConsentGiven) TextWhite else TextGray
@@ -193,12 +197,20 @@ fun Step3MinorConsent(
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
-                                text = if (language == Language.TAMIL) "வயது வந்த வீரர் ($calculatedAge வயது)" else "Adult Athlete (Age $calculatedAge)",
+                                text = when (language) {
+                                    Language.ENGLISH -> "Adult Athlete (Age $calculatedAge)"
+                                    Language.TAMIL -> "வயது வந்த வீரர் ($calculatedAge வயது)"
+                                    Language.HINDI -> "वयस्क खिलाड़ी (आयु $calculatedAge वर्ष)"
+                                },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = ElectricEmerald
                             )
                             Text(
-                                text = if (language == Language.TAMIL) "நேரடி பதிவு அனுமதிக்கப்பட்டது" else "Direct Registration Verified",
+                                text = when (language) {
+                                    Language.ENGLISH -> "Direct Registration Verified"
+                                    Language.TAMIL -> "நேரடி பதிவு அனுமதிக்கப்பட்டது"
+                                    Language.HINDI -> "सीधा पंजीकरण सत्यापित"
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextGray
                             )
