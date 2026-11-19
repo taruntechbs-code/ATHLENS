@@ -1,6 +1,53 @@
-# ATHLENS — Offline-First Native Android Sports-Tech MVP (Phases 1–6 Complete)
+# ATHLENS — Offline-First Native Android Sports-Tech Platform
 
-ATHLENS is an offline-first native Android sports-tech platform engineered specifically for grassroots Kabaddi and Kho-Kho athletes, coaches, and scouts across Tamil Nadu and India. Built with Kotlin, Jetpack Compose, and Material 3, it provides on-device AI biomechanical coaching, maturity-aware talent assessment, cryptographically signed digital passports, and offline peer-to-peer talent exchange without requiring internet access or cloud infrastructure.
+ATHLENS is an offline-first native Android sports-tech platform engineered specifically for grassroots Kabaddi and Kho-Kho athletes, coaches, and scouts across Tamil Nadu and India. Built with Kotlin, Jetpack Compose, Material 3, and an Apple first-party **Liquid Glass / Contour Glass** design system, it provides on-device AI biomechanical coaching, maturity-aware talent assessment, cryptographically signed digital passports, and offline peer-to-peer talent exchange without requiring internet access or cloud infrastructure.
+
+---
+
+## 💎 Liquid Glass / Contour Glass Redesign (Phases 1–3 Complete)
+
+The entire user interface has been elevated to an Apple first-party **Liquid Glass / Contour Glass** aesthetic, combining real-time GPU backdrop blur (`dev.chrisbanes.haze:haze:1.3.1`), multi-layered contour lighting, and real offline editorial photography:
+
+### 1. Foundation & Design System (`LiquidGlass.kt`)
+- **Real-Time Backdrop Blur**: `dev.chrisbanes.haze:haze:1.3.1` powers dynamic glass refraction across all cards, modals, top header, and navigation bars.
+- **Contour Specular Lighting**: Every `ContourGlassCard` features a multi-stop linear gradient background, inner specular top-edge highlight (`1dp` stroke from white alpha to transparent), and dynamic outer borders (`GlassBorderEmerald`, `GlassBorderStandard`).
+- **Ambient Mesh Backdrop (`AmbientGlassBackground.kt`)**: Deep obsidian canvas (`#050814`) layered with glowing midnight sapphire (`#0B132B`), electric emerald (`#10B981`), and ocean teal (`#0EA5E9`) radial gradients.
+- **Floating Liquid Glass Navigation**:
+  - **Top Bar**: Floating translucent capsule with ATHLENS glowing emerald brand mark and 3-way language switcher (`EN` ↔ `தமிழ்` ↔ `हिन्दी`).
+  - **Bottom Navigation Pill (`FloatingGlassNavBar`)**: Floating Apple-style glass capsule with spring-animated icon scaling and active glass selection pills.
+
+### 2. Editorial Athletic & Grassroots Photography (100% Offline in `drawable-nodpi/`)
+- `img_train_hero.jpg`: Athletic preparation barbell grip for AI Camera Coach hero card.
+- `img_drill_kabaddi.jpg`: Overhead barbell stability for Kabaddi Raid Stance drill card.
+- `img_drill_khokho.jpg`: Deep crouch sprinting start on stadium track for Kho-Kho Crouch Start drill card.
+- `img_passport_banner.jpg`: Floodlit stadium track backdrop for Apple Wallet–style Athlete Pass.
+- `img_food_preworkout.jpg`: Ragi koozh pre-workout complex carbohydrates.
+- `img_food_protein.jpg`: Poovan banana & roasted kadalai potassium and quick energy.
+- `img_food_hydration.jpg`: Village neer mor traditional electrolyte hydration.
+- `img_food_recovery.jpg`: Boiled black chana sundal & country eggs high-protein muscle recovery.
+
+### 3. Apple Wallet–Style Athlete Pass (`PassportTab.kt`)
+- **Wallet Pass Hero Card**: Scrimmed stadium photo backdrop, micro-label (`#shortId`), athlete name, FlowRow sport/position pills, and 3-tile tabular telemetry strip (Sessions, Form Score, Latest Drill).
+- **Minor Guardian Legal Consent Card**: Distinct warm-amber glass shield confirming verified parental consent.
+- **Cryptographic Talent Passport Card**: Displays active ECDSA P-256 Key Fingerprint and one-tap launch to the frosted QR modal dialog.
+- **Maturity-Aware Assessment Card**: 2x2 glass metric grid (Exact Chronological Age, RAE Status, Growth Velocity cm/yr, Kinematic Progression Delta %) and Coach Advisory Banner.
+- **Verified Achievements Card**: Glass medal shelf tracking district/state accolades.
+- **Frosted QR Modal Dialog**: Apple-style frosted popup with high-density QR code, "Verify Integrity", and "Simulate Tamper" scout verification actions.
+
+### 4. Liquid Hydration & Grassroots Nutrition (`NutritionTab.kt`)
+- **Liquid Hydration Tracker**: Animated cyan-to-emerald gradient progress bar tracking daily water intake towards a 3,000 ml target with one-tap `+250 ml` log and reset actions.
+- **Photo-Backed Meal Cards**: 84x84dp rounded food photography thumbnails with glowing emerald checkmark overlays upon completion.
+- **Grassroots Economy Focus**: All meal options formulated for Tamil Nadu athletes using local staples under ₹30/day.
+
+### 5. AirDrop-Style Decentralized Talent Exchange (`ShareP2PTab.kt`)
+- **iOS-Style Glass Segmented Switcher**: Smooth toggle between `Send Passport` and `Receive (Scout)` modes.
+- **Mini Wallet Preview**: Compact Apple-Wallet-style athlete pass summary before sharing.
+- **Concentric Pulsing Radar Animation**: AirDrop-style radar waves actively visualizing Nearby Connections BLE & Wi-Fi Direct advertising.
+- **Verified Scout Inbox**: Cryptographically validated athlete passes with genuine/tampered status badges and instant signature verification.
+- **Cloud Sync Engine**: WorkManager offline telemetry queue status and manual "Sync Now" action.
+
+### 6. Translucent Camera & Scanner HUDs (`CameraCoachScreen.kt` & `QrScannerScreen.kt`)
+- Floating contour glass controls for lens flipping, drill selection, score telemetry, and real-time kinematic posture feedback banners without impacting 30 FPS MediaPipe computer vision throughput.
 
 ---
 
@@ -120,7 +167,7 @@ ATHLENS is an offline-first native Android sports-tech platform engineered speci
 | Layer | Technology |
 |---|---|
 | **OS & SDKs** | Android minSdk 26, targetSdk 35, compileSdk 35, JVM Target 17 |
-| **Language & UI** | Kotlin 2.0.21, Jetpack Compose, Material 3 (BOM 2024.11.00), Navigation Compose 2.8.4 |
+| **Language & UI** | Kotlin 2.0.21, Jetpack Compose, Material 3 (BOM 2024.11.00), Navigation Compose 2.8.4, Haze 1.3.1 (Liquid Glass) |
 | **Computer Vision** | Google MediaPipe Tasks Vision 0.10.14 (`pose_landmarker_lite.task`), CameraX 1.4.1 |
 | **Audio & TTS** | Android TextToSpeech (`en-IN`, `ta-IN`, `hi-IN`) with `TTS_SERVICE` query visibility |
 | **Encrypted Database** | Room 2.6.1 (v4) with KSP 2.0.21-1.0.28, SQLCipher 4.6.1, Android Keystore AES-256-GCM |

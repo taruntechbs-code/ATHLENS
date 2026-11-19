@@ -120,11 +120,13 @@ fun DashboardScreen(
                     },
                     onTamperPayload = { payload ->
                         viewModel.simulateTamperedPayload(payload)
-                    }
+                    },
+                    hazeState = hazeState
                 )
                 DashboardTab.NUTRITION -> NutritionTab(
                     sport = uiState.athleteProfile?.sport ?: com.athlens.app.domain.model.Sport.KABADDI,
-                    language = uiState.activeLanguage
+                    language = uiState.activeLanguage,
+                    hazeState = hazeState
                 )
                 DashboardTab.SHARE_P2P -> ShareP2PTab(
                     profile = uiState.athleteProfile,
@@ -142,7 +144,8 @@ fun DashboardScreen(
                     onConnectEndpoint = { id -> viewModel.connectToEndpoint(id) },
                     onLaunchQrScanner = onLaunchQrScanner,
                     onDeleteReceivedPassport = { id -> viewModel.deleteReceivedPassport(id) },
-                    onSyncNow = { viewModel.triggerCloudSync() }
+                    onSyncNow = { viewModel.triggerCloudSync() },
+                    hazeState = hazeState
                 )
             }
         }

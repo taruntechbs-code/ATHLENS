@@ -561,7 +561,7 @@ fun FloatingGlassNavBar(
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             item.onClick()
                         }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                        .padding(vertical = 7.dp, horizontal = 2.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -577,7 +577,8 @@ fun FloatingGlassNavBar(
                         Text(
                             text = item.title,
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 10.sp,
+                                fontSize = 9.5.sp,
+                                letterSpacing = (-0.2).sp,
                                 fontWeight = if (item.isSelected) FontWeight.Bold else FontWeight.Medium
                             ),
                             color = if (item.isSelected) TextWhite else TextMuted,

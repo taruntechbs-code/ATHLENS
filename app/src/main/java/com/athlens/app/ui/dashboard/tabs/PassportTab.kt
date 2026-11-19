@@ -1,9 +1,11 @@
 package com.athlens.app.ui.dashboard.tabs
 
+import android.graphics.Bitmap
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -37,31 +40,18 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.QrCode2
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -71,16 +61,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.athlens.app.R
 import com.athlens.app.domain.maturity.MaturityContextReport
 import com.athlens.app.domain.model.Achievement
 import com.athlens.app.domain.model.AchievementLevel
@@ -88,19 +85,25 @@ import com.athlens.app.domain.model.AthleteProfile
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.passport.QrCodeGenerator
 import com.athlens.app.domain.passport.SignedTalentPassport
-import com.athlens.app.ui.theme.CardNavy
-import com.athlens.app.ui.theme.CardNavyElevated
+import com.athlens.app.ui.theme.ContourGlassCard
 import com.athlens.app.ui.theme.CrimsonAlert
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
 import com.athlens.app.ui.theme.ElectricEmeraldDark
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassButton
+import com.athlens.app.ui.theme.LiquidGlassPill
+import com.athlens.app.ui.theme.MidnightSapphire
+import com.athlens.app.ui.theme.ObsidianCanvas
+import com.athlens.app.ui.theme.OceanTeal
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
 import com.athlens.app.ui.theme.WarmAmber
-import com.athlens.app.ui.theme.WarmAmberDark
 import com.athlens.app.ui.util.BilingualStrings
 import com.athlens.app.ui.util.DateUtils
+import dev.chrisbanes.haze.HazeState
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -119,7 +122,8 @@ fun PassportTab(
     onDeleteAchievement: (String) -> Unit = {},
     onVerifyPassport: (String, String, String) -> Boolean = { _, _, _ -> false },
     onTamperPayload: (String) -> String = { it },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hazeState: HazeState? = null
 ) {
     val scrollState = rememberScrollState()
     var showLogGrowthDialog by remember { mutableStateOf(false) }
@@ -131,712 +135,1176 @@ fun PassportTab(
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // Digital Sports Passport Card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(2.dp, ElectricEmerald),
-            modifier = Modifier.fillMaxWidth()
+        // 1. Apple Wallet–Style Athlete Pass Hero Card
+        AthleteWalletPassCard(
+            profile = profile,
+            totalSessions = totalSessions,
+            averageScore = averageScore,
+            latestSessionScore = latestSessionScore,
+            language = language
+        )
+
+        // 2. Minor Guardian Consent Badge (if minor)
+        if (profile?.isMinor == true) {
+            MinorGuardianConsentCard(
+                guardianName = profile.guardianName,
+                language = language,
+                hazeState = hazeState
+            )
+        }
+
+        // 3. Cryptographic Talent Passport & Offline QR Card
+        CryptographicPassportCard(
+            signedPassport = signedPassport,
+            language = language,
+            onShowQrModal = { showQrPassportDialog = true },
+            hazeState = hazeState
+        )
+
+        // 4. Maturity-Aware Assessment Card
+        MaturityAwareCard(
+            maturityReport = maturityReport,
+            language = language,
+            onLogGrowthClick = { showLogGrowthDialog = true },
+            hazeState = hazeState
+        )
+
+        // 5. Verified Achievements Card
+        AchievementsCard(
+            achievements = achievements,
+            language = language,
+            onAddClick = { showAddAchievementDialog = true },
+            onDeleteClick = onDeleteAchievement,
+            hazeState = hazeState
+        )
+
+        // Bottom clearance for floating nav bar
+        Spacer(modifier = Modifier.navigationBarsPadding().height(104.dp))
+    }
+
+    // Modal: Signed QR Passport Viewer Dialog
+    if (showQrPassportDialog && signedPassport != null) {
+        QrPassportModalDialog(
+            signedPassport = signedPassport,
+            language = language,
+            onVerify = onVerifyPassport,
+            onTamper = onTamperPayload,
+            onDismiss = { showQrPassportDialog = false }
+        )
+    }
+
+    // Modal: Log Height/Weight Dialog
+    if (showLogGrowthDialog) {
+        LogGrowthDialog(
+            language = language,
+            onDismiss = { showLogGrowthDialog = false },
+            onConfirm = { height, weight ->
+                onLogGrowthMeasurement(height, weight)
+                showLogGrowthDialog = false
+            }
+        )
+    }
+
+    // Modal: Add Achievement Dialog
+    if (showAddAchievementDialog) {
+        AddAchievementDialog(
+            language = language,
+            onDismiss = { showAddAchievementDialog = false },
+            onConfirm = { title, level, issuer, verified ->
+                onAddAchievement(title, level, issuer, verified)
+                showAddAchievementDialog = false
+            }
+        )
+    }
+}
+
+/**
+ * 1. Apple Wallet–Style Athlete Pass Hero Card
+ * Full-bleed stadium background with rich dark gradient scrim, specular emerald contour rim,
+ * micro-brand badge, tabular telemetry strip, and FlowRow metadata pills.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AthleteWalletPassCard(
+    profile: AthleteProfile?,
+    totalSessions: Int,
+    averageScore: Double?,
+    latestSessionScore: Int?,
+    language: Language
+) {
+    val passShape = RoundedCornerShape(28.dp)
+    val shortId = profile?.id?.take(8)?.uppercase() ?: "NEW"
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(passShape)
+            .border(1.2.dp, GlassBorderEmerald, passShape)
+    ) {
+        // Stadium floodlights photography backdrop
+        Image(
+            painter = painterResource(R.drawable.img_passport_banner),
+            contentDescription = "Stadium Track Backdrop",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
+
+        // Rich dark gradient scrim ensuring razor-sharp text
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        0.0f to Color(0x99050814),
+                        0.45f to Color(0xDD050814),
+                        1.0f to Color(0xF8050814)
+                    )
+                )
+        )
+
+        // Pass Content
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                // Top Header with Passport Tag & Athlete ID
+            // Top Row: Micro-label + ID capsule
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
-                    Row(
-                        modifier = Modifier.weight(1f, fill = false),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Badge,
-                            contentDescription = "Passport",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = when (language) {
-                                Language.ENGLISH -> "ATHLETE PASSPORT"
-                                Language.TAMIL -> "தடகள பாஸ்போர்ட்"
-                                Language.HINDI -> "खिलाड़ी पासपोर्ट"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            color = ElectricEmerald,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    val shortId = profile?.id?.take(8)?.uppercase() ?: "NEW"
-                    Surface(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, CardNavyElevated)
-                    ) {
-                        Text(
-                            text = "#$shortId",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextWhite,
-                            softWrap = false,
-                            maxLines = 1,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(ElectricEmerald)
+                    )
+                    Text(
+                        text = when (language) {
+                            Language.ENGLISH -> "ATHLENS TALENT PASSPORT"
+                            Language.TAMIL -> "தடகளத் திறன் பாஸ்போர்ட்"
+                            Language.HINDI -> "खिलाड़ी प्रतिभा पासपोर्ट"
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 1.3.sp
+                        ),
+                        color = ElectricEmerald,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                LiquidGlassPill(
+                    text = "#$shortId",
+                    isSelected = true,
+                    tintColor = ElectricEmerald
+                )
+            }
 
-                // Athlete Name & Position
+            // Athlete Name & FlowRow Pills
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = profile?.fullName ?: "Grassroots Athlete",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.5).sp
+                    ),
                     color = TextWhite,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 FlowRow(
-                    modifier = Modifier.padding(top = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Surface(
-                        color = ElectricEmeraldDark,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = profile?.sport?.getDisplayName(language) ?: "Kabaddi",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextWhite,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    LiquidGlassPill(
+                        text = profile?.sport?.getDisplayName(language) ?: "Kabaddi",
+                        isSelected = true,
+                        tintColor = ElectricEmerald
+                    )
+                    LiquidGlassPill(
+                        text = profile?.playingPosition ?: "Raider",
+                        isSelected = false
+                    )
+                    LiquidGlassPill(
+                        text = "${profile?.district ?: "Coimbatore"}, TN",
+                        isSelected = false
+                    )
+                    if (profile?.isMinor == true) {
+                        LiquidGlassPill(
+                            text = "GUARDIAN VERIFIED",
+                            isSelected = true,
+                            tintColor = WarmAmber
                         )
                     }
-
-                    Surface(
-                        color = CardNavyElevated,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = profile?.playingPosition ?: "Raider",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ElectricEmerald,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = CardNavyElevated)
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Detail Rows
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DetailRow(
-                        label = when (language) {
-                            Language.ENGLISH -> "Platform Role"
-                            Language.TAMIL -> "பங்கு"
-                            Language.HINDI -> "भूमिका"
-                        },
-                        value = profile?.role?.getDisplayName(language) ?: "Athlete"
-                    )
-                    DetailRow(
-                        label = when (language) {
-                            Language.ENGLISH -> "District"
-                            Language.TAMIL -> "மாவட்டம்"
-                            Language.HINDI -> "ज़िला"
-                        },
-                        value = "${profile?.district ?: "Coimbatore"}, Tamil Nadu"
-                    )
-                    DetailRow(
-                        label = when (language) {
-                            Language.ENGLISH -> "Date of Birth"
-                            Language.TAMIL -> "பிறந்த தேதி"
-                            Language.HINDI -> "जन्म तिथि"
-                        },
-                        value = profile?.let { DateUtils.formatDate(it.dateOfBirth) } ?: "--"
-                    )
-                    DetailRow(
-                        label = when (language) {
-                            Language.ENGLISH -> "Calculated Age"
-                            Language.TAMIL -> "கணக்கிடப்பட்ட வயது"
-                            Language.HINDI -> "गणना की गई आयु"
-                        },
-                        value = "${profile?.calculatedAge ?: 0} years"
-                    )
                 }
             }
-        }
 
-        // Minor Guardian Legal Authorization Badge (if minor)
-        if (profile?.isMinor == true) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = CardNavy),
-                border = BorderStroke(1.5.dp, WarmAmber),
-                modifier = Modifier.fillMaxWidth()
+            // Embedded Telemetry Strip: 3 Tabular Numeral Glass Tiles
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .border(1.dp, GlassBorderStandard, RoundedCornerShape(18.dp))
+                    .padding(vertical = 12.dp, horizontal = 14.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PassMetricTile(
+                    label = when (language) {
+                        Language.ENGLISH -> "Sessions"
+                        Language.TAMIL -> "அமர்வுகள்"
+                        Language.HINDI -> "सत्र"
+                    },
+                    value = "$totalSessions"
+                )
+                Box(
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(1.dp)
+                        .background(Color.White.copy(alpha = 0.12f))
+                )
+                PassMetricTile(
+                    label = when (language) {
+                        Language.ENGLISH -> "Avg Score"
+                        Language.TAMIL -> "சராசரி"
+                        Language.HINDI -> "औसत"
+                    },
+                    value = averageScore?.roundToInt()?.let { "$it/100" } ?: "--"
+                )
+                Box(
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(1.dp)
+                        .background(Color.White.copy(alpha = 0.12f))
+                )
+                PassMetricTile(
+                    label = when (language) {
+                        Language.ENGLISH -> "Latest"
+                        Language.TAMIL -> "சமீபத்திய"
+                        Language.HINDI -> "नवीनतम"
+                    },
+                    value = latestSessionScore?.let { "$it/100" } ?: "--"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PassMetricTile(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.ExtraBold,
+                fontFeatureSettings = "tnum"
+            ),
+            color = TextWhite
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted
+        )
+    }
+}
+
+/**
+ * 2. Minor Guardian Legal Consent Card
+ */
+@Composable
+private fun MinorGuardianConsentCard(
+    guardianName: String?,
+    language: Language,
+    hazeState: HazeState? = null
+) {
+    ContourGlassCard(
+        hazeState = hazeState,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(WarmAmber.copy(alpha = 0.18f))
+                    .border(1.2.dp, WarmAmber.copy(alpha = 0.8f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = "Minor Consent",
+                    tint = WarmAmber,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = when (language) {
+                        Language.ENGLISH -> "Guardian Legal Consent Verified"
+                        Language.TAMIL -> "பாதுகாவலர் சட்டப்பூர்வ ஒப்புதல்"
+                        Language.HINDI -> "अभिभावक सहमति सत्यापित"
+                    },
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = WarmAmber,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = when (language) {
+                        Language.ENGLISH -> "Authorized by ${guardianName ?: "Guardian"} for kinematic telemetry"
+                        Language.TAMIL -> "${guardianName ?: "பாதுகாவலர்"} மூலம் அனுமதி சரிபார்க்கப்பட்டது"
+                        Language.HINDI -> "${guardianName ?: "अभिभावक"} द्वारा खेल टेलीमेट्री अधिकृत"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 3. Cryptographic Talent Passport & Offline QR Card
+ */
+@Composable
+private fun CryptographicPassportCard(
+    signedPassport: SignedTalentPassport?,
+    language: Language,
+    onShowQrModal: () -> Unit,
+    hazeState: HazeState? = null
+) {
+    ContourGlassCard(
+        hazeState = hazeState,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Shield,
-                        contentDescription = "Minor Protection",
-                        tint = WarmAmber,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = when (language) {
-                                Language.ENGLISH -> "Guardian Legal Consent Verified"
-                                Language.TAMIL -> "பாதுகாவலர் ஒப்புதல் சரிபார்க்கப்பட்டது"
-                                Language.HINDI -> "अभिभावक सहमति सत्यापित"
-                            },
-                            style = MaterialTheme.typography.titleSmall,
-                            color = WarmAmber
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = when (language) {
-                                Language.ENGLISH -> "Guardian: ${profile.guardianName ?: "Verified"} (Authorized for sports telemetry)"
-                                Language.TAMIL -> "பாதுகாவலர்: ${profile.guardianName ?: "சரிபார்க்கப்பட்டது"} (சட்டப்பூர்வ அனுமதி வழங்கப்பட்டது)"
-                                Language.HINDI -> "अभिभावक: ${profile.guardianName ?: "सत्यापित"} (खेल टेलीमेट्री हेतु अधिकृत)"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextGray
-                        )
-                    }
-                }
-            }
-        }
-
-        // Phase 5: Cryptographic Talent Passport & Offline QR Card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.5.dp, ElectricEmerald),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(ElectricEmerald.copy(alpha = 0.18f))
+                            .border(1.2.dp, ElectricEmerald, CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Security,
-                            contentDescription = "Crypto",
+                            contentDescription = null,
                             tint = ElectricEmerald,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = BilingualStrings.getDigitalPassportTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    Surface(
-                        color = ElectricEmerald.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, ElectricEmerald)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.VerifiedUser,
-                                contentDescription = null,
-                                tint = ElectricEmerald,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = "ECDSA P-256",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = ElectricEmerald,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Key Fingerprint & Security explanation
-                Surface(
-                    color = DeepNavy,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = TextMuted,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = BilingualStrings.getKeyFingerprintLabel(language),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted
-                            )
-                        }
-                        Text(
-                            text = signedPassport?.keyFingerprint ?: "SHA256:--",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontFamily = FontFamily.Monospace,
-                            color = TextWhite,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Hardware-backed offline cryptographic attestation. Talent credentials and kinematic progression can be mathematically verified without network connectivity.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextGray
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Button(
-                    onClick = { showQrPassportDialog = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ElectricEmerald,
-                        contentColor = DeepNavy
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.QrCode2,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = BilingualStrings.getShowQrPassportButton(language),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        // Phase 5: Verified Achievements Section
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.dp, CardNavyElevated),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.EmojiEvents,
-                            contentDescription = "Achievements",
-                            tint = WarmAmber,
                             modifier = Modifier.size(22.dp)
                         )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = BilingualStrings.getAchievementsTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
+                            text = BilingualStrings.getDigitalPassportTitle(language),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = TextWhite,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
-
-                    Surface(
-                        color = CardNavyElevated,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        val verifiedCount = achievements.count { it.isVerified }
                         Text(
-                            text = "$verifiedCount/${achievements.size} Verified",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (verifiedCount > 0) ElectricEmerald else TextMuted,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (achievements.isEmpty()) {
-                    Surface(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = BilingualStrings.getNoAchievementsYet(language),
+                            text = "Hardware KeyStore • 100% Offline",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextMuted,
-                            modifier = Modifier.padding(14.dp)
-                        )
-                    }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        achievements.forEach { achievement ->
-                            AchievementItemRow(
-                                achievement = achievement,
-                                language = language,
-                                onDelete = { onDeleteAchievement(achievement.id) }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                OutlinedButton(
-                    onClick = { showAddAchievementDialog = true },
-                    border = BorderStroke(1.dp, WarmAmber),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = WarmAmber),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = BilingualStrings.getAddAchievementButton(language),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-            }
-        }
-
-        // Phase 4A: Maturity-Aware Talent Assessment Card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.5.dp, ElectricEmerald),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                            contentDescription = "Maturity",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = BilingualStrings.getMaturityCardTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite,
-                            maxLines = 2,
+                            color = ElectricEmerald,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-
-                    if (maturityReport != null) {
-                        Surface(
-                            color = if (maturityReport.isLateBorn) WarmAmber.copy(alpha = 0.2f) else ElectricEmerald.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, if (maturityReport.isLateBorn) WarmAmber else ElectricEmerald)
-                        ) {
-                            Text(
-                                text = maturityReport.getSummaryBadge(language),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (maturityReport.isLateBorn) WarmAmber else ElectricEmerald,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                LiquidGlassPill(
+                    text = "ECDSA P-256",
+                    isSelected = true,
+                    tintColor = ElectricEmerald
+                )
+            }
 
-                // Maturity Metrics 2x2 Grid
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    MetricCard(
-                        title = BilingualStrings.getExactAgeLabel(language),
-                        value = maturityReport?.let { "${it.exactAgeYears}y ${it.exactAgeMonths}m" }
-                            ?: "${profile?.calculatedAge ?: 0} yrs",
-                        subtitle = "DOB: ${profile?.let { DateUtils.formatDate(it.dateOfBirth) } ?: "--"}",
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    MetricCard(
-                        title = BilingualStrings.getRaeQuarterLabel(language),
-                        value = maturityReport?.raeQuarter ?: "Q1",
-                        subtitle = if (maturityReport?.isLateBorn == true) {
-                            "Late-Born Buffer"
-                        } else {
-                            "Early-Born Quarter"
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val growthVelocityText = maturityReport?.growthVelocityCmPerYear?.let {
-                        val sign = if (it >= 0f) "+" else ""
-                        "$sign${String.format("%.1f", it)} cm/yr"
-                    } ?: "--"
-
-                    val growthSubtitle = when {
-                        maturityReport?.isRapidGrowthSpurt == true -> "Rapid Spurt Alert"
-                        maturityReport != null && maturityReport.totalMeasurements >= 2 -> "Steady Growth Pace"
-                        else -> "Log 2+ measurements"
-                    }
-
-                    MetricCard(
-                        title = BilingualStrings.getGrowthVelocityLabel(language),
-                        value = growthVelocityText,
-                        subtitle = growthSubtitle,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    val progressionText = maturityReport?.progressionDeltaPercent?.let {
-                        val sign = if (it >= 0) "+" else ""
-                        "$sign$it%"
-                    } ?: "--"
-
-                    MetricCard(
-                        title = BilingualStrings.getProgressionDeltaLabel(language),
-                        value = progressionText,
-                        subtitle = if (totalSessions >= 2) "Baseline vs Recent" else "Need 2+ sessions",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Growth Measurement summary
-                if (maturityReport?.latestHeightCm != null || maturityReport?.latestWeightKg != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Current: ${maturityReport.latestHeightCm ?: "--"} cm • ${maturityReport.latestWeightKg ?: "--"} kg",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextWhite
-                            )
-                            Text(
-                                text = "Records: ${maturityReport.totalMeasurements}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Log Height / Weight Action Button
-                OutlinedButton(
-                    onClick = { showLogGrowthDialog = true },
-                    border = BorderStroke(1.dp, ElectricEmerald),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ElectricEmerald),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Straighten,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = BilingualStrings.getLogGrowthButton(language),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Coach Development Context Disclaimer
+            // Fingerprint & Canonical Payload Status
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, GlassBorderStandard, RoundedCornerShape(14.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = Icons.Default.Lock,
                         contentDescription = null,
                         tint = TextMuted,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = BilingualStrings.getMaturityDisclaimer(language),
+                        text = BilingualStrings.getKeyFingerprintLabel(language),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted
+                    )
+                }
+
+                val fingerprint = signedPassport?.keyFingerprint ?: "CREATING..."
+                Text(
+                    text = fingerprint,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    ),
+                    color = ElectricEmerald
+                )
+            }
+
+            // Primary Show QR Passport Button
+            LiquidGlassButton(
+                onClick = onShowQrModal,
+                isPrimary = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.QrCode2,
+                    contentDescription = null,
+                    tint = DeepNavy,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = when (language) {
+                        Language.ENGLISH -> "Show Signed QR Passport"
+                        Language.TAMIL -> "கையொப்பமிட்ட QR பாஸ்போர்ட்"
+                        Language.HINDI -> "हस्ताक्षरित क्यूआर पासपोर्ट दिखाएं"
+                    },
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        letterSpacing = (-0.2).sp
+                    ),
+                    color = DeepNavy,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 4. Maturity-Aware Assessment Card
+ */
+@Composable
+private fun MaturityAwareCard(
+    maturityReport: MaturityContextReport?,
+    language: Language,
+    onLogGrowthClick: () -> Unit,
+    hazeState: HazeState? = null
+) {
+    ContourGlassCard(
+        hazeState = hazeState,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(OceanTeal.copy(alpha = 0.20f))
+                            .border(1.2.dp, OceanTeal, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                            contentDescription = null,
+                            tint = OceanTeal,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = BilingualStrings.getMaturityCardTitle(language),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.5.sp
+                            ),
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Growth Velocity & Bio-Banding",
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                            color = OceanTeal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                val raeQuarter = maturityReport?.raeQuarter ?: "Q1"
+                LiquidGlassPill(
+                    text = "RAE $raeQuarter",
+                    isSelected = true,
+                    tintColor = ElectricEmerald
+                )
+            }
+
+            // 2x2 Glass Metric Tiles
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GlassMetricMiniCard(
+                        title = when (language) {
+                            Language.ENGLISH -> "Exact Age"
+                            Language.TAMIL -> "துல்லிய வயது"
+                            Language.HINDI -> "सटीक आयु"
+                        },
+                        value = maturityReport?.let {
+                            "${it.exactAgeYears}y ${it.exactAgeMonths}m"
+                        } ?: "--",
+                        modifier = Modifier.weight(1f)
+                    )
+                    GlassMetricMiniCard(
+                        title = when (language) {
+                            Language.ENGLISH -> "RAE Status"
+                            Language.TAMIL -> "RAE நிலை"
+                            Language.HINDI -> "आरएई स्थिति"
+                        },
+                        value = when (maturityReport?.raeQuarter) {
+                            "Q1", "Q2" -> "Advantaged"
+                            "Q3", "Q4" -> "Late Maturing"
+                            else -> "Normal"
+                        },
+                        valueColor = OceanTeal,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GlassMetricMiniCard(
+                        title = when (language) {
+                            Language.ENGLISH -> "Growth Velocity"
+                            Language.TAMIL -> "வளர்ச்சி வேகம்"
+                            Language.HINDI -> "वृद्धि दर"
+                        },
+                        value = maturityReport?.growthVelocityCmPerYear?.let {
+                            "%.1f cm/yr".format(it)
+                        } ?: "Pending",
+                        modifier = Modifier.weight(1f)
+                    )
+                    GlassMetricMiniCard(
+                        title = when (language) {
+                            Language.ENGLISH -> "Progression"
+                            Language.TAMIL -> "முன்னேற்றம்"
+                            Language.HINDI -> "प्रगति"
+                        },
+                        value = maturityReport?.progressionDeltaPercent?.let {
+                            "%+d%%".format(it)
+                        } ?: "--",
+                        valueColor = if ((maturityReport?.progressionDeltaPercent ?: 0) >= 0) ElectricEmerald else CrimsonAlert,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            // Coach Advisory Banner
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.04f))
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = TextMuted,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = when (language) {
+                        Language.ENGLISH -> "Biological age normalization protects late-maturing talent from premature deselection."
+                        Language.TAMIL -> "உயிரியல் வயது சமன்பாடு பின்தங்கிய பருவ வயதினரை முன்கூட்டியே நிராகரிப்பதில் இருந்து பாதுகாக்கிறது."
+                        Language.HINDI -> "जैविक आयु सामान्यीकरण देर से परिपक्व होने वाली प्रतिभा को समयपूर्व बाहर होने से बचाता है।"
+                    },
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
+                    color = TextGray
+                )
+            }
+
+            // Log Height & Weight Button
+            LiquidGlassButton(
+                onClick = onLogGrowthClick,
+                isPrimary = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 44.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = TextWhite,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = when (language) {
+                        Language.ENGLISH -> "Log Height & Weight"
+                        Language.TAMIL -> "உயரம் & எடை பதிவு"
+                        Language.HINDI -> "लंबाई एवं वज़न दर्ज करें"
+                    },
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextWhite
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlassMetricMiniCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = TextWhite
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, GlassBorderStandard, RoundedCornerShape(14.dp))
+            .padding(12.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = "tnum"
+                ),
+                color = valueColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+/**
+ * 5. Verified Achievements Card
+ */
+@Composable
+private fun AchievementsCard(
+    achievements: List<Achievement>,
+    language: Language,
+    onAddClick: () -> Unit,
+    onDeleteClick: (String) -> Unit,
+    hazeState: HazeState? = null
+) {
+    ContourGlassCard(
+        hazeState = hazeState,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(WarmAmber.copy(alpha = 0.18f))
+                            .border(1.2.dp, WarmAmber, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.EmojiEvents,
+                            contentDescription = null,
+                            tint = WarmAmber,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Verified Achievements"
+                                Language.TAMIL -> "சரிபார்க்கப்பட்ட சாதனைகள்"
+                                Language.HINDI -> "सत्यापित उपलब्धियां"
+                            },
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = TextWhite,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "${achievements.size} Medals / Certificates",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = WarmAmber,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                LiquidGlassPill(
+                    text = "+ Add",
+                    isSelected = true,
+                    tintColor = WarmAmber,
+                    onClick = onAddClick
+                )
+            }
+
+            if (achievements.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White.copy(alpha = 0.04f))
+                        .padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = when (language) {
+                            Language.ENGLISH -> "No verified achievements logged yet. Tap '+ Add' to record tournament medals."
+                            Language.TAMIL -> "சாதனைகள் எதுவும் பதிவாகவில்லை. பதக்கங்களைச் சேர்க்க '+ Add' தட்டவும்."
+                            Language.HINDI -> "कोई उपलब्धि नहीं। पदक जोड़ने के लिए '+ Add' दबाएं।"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMuted
                     )
                 }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    achievements.forEach { achievement ->
+                        AchievementGlassRow(
+                            achievement = achievement,
+                            onDelete = { onDeleteClick(achievement.id) }
+                        )
+                    }
+                }
             }
         }
+    }
+}
 
-        // Live Performance & Telemetry Metrics Section
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = when (language) {
-                    Language.ENGLISH -> "Performance & Telemetry Metrics"
-                    Language.TAMIL -> "செயல்திறன் அளவீடுகள்"
-                    Language.HINDI -> "प्रदर्शन एवं टेलीमेट्री मेट्रिक्स"
-                },
-                style = MaterialTheme.typography.titleMedium,
-                color = ElectricEmerald
+@Composable
+private fun AchievementGlassRow(
+    achievement: Achievement,
+    onDelete: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, GlassBorderStandard, RoundedCornerShape(14.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(WarmAmber.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.EmojiEvents,
+                contentDescription = null,
+                tint = WarmAmber,
+                modifier = Modifier.size(20.dp)
             )
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                MetricCard(
-                    title = when (language) {
-                        Language.ENGLISH -> "Total Drills"
-                        Language.TAMIL -> "முழுமை பயிற்சி"
-                        Language.HINDI -> "कुल अभ्यास"
-                    },
-                    value = "$totalSessions",
-                    subtitle = if (totalSessions > 0) "Recorded in Room" else "Ready for drill",
-                    modifier = Modifier.weight(1f)
-                )
-                MetricCard(
-                    title = when (language) {
-                        Language.ENGLISH -> "Avg Form Score"
-                        Language.TAMIL -> "சராசரி மதிப்பெண்"
-                        Language.HINDI -> "औसत फॉर्म स्कोर"
-                    },
-                    value = averageScore?.let { "${it.roundToInt()} / 100" } ?: "-- / 100",
-                    subtitle = if (averageScore != null) "AI MediaPipe Live" else "Awaiting drills",
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = achievement.title,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = TextWhite,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "${achievement.level.name} • ${achievement.issuerName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+        if (achievement.isVerified) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(ElectricEmerald.copy(alpha = 0.2f))
+                    .padding(6.dp)
             ) {
-                MetricCard(
-                    title = when (language) {
-                        Language.ENGLISH -> "Latest Drill Score"
-                        Language.TAMIL -> "கடைசி மதிப்பெண்"
-                        Language.HINDI -> "नवीनतम अभ्यास स्कोर"
-                    },
-                    value = latestSessionScore?.let { "$it / 100" } ?: "--",
-                    subtitle = "Recent Kinematics",
-                    modifier = Modifier.weight(1f)
-                )
-                MetricCard(
-                    title = when (language) {
-                        Language.ENGLISH -> "Sync Status"
-                        Language.TAMIL -> "ஒத்திசைவு நிலை"
-                        Language.HINDI -> "सिंक स्थिति"
-                    },
-                    value = "100% Offline",
-                    subtitle = "SQLCipher Encrypted",
-                    modifier = Modifier.weight(1f)
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Verified",
+                    tint = ElectricEmerald,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
 
-        // Extra spacing so last element glides smoothly underneath floating glass nav bar
-        Spacer(modifier = Modifier.navigationBarsPadding().height(104.dp))
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = TextMuted,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+/**
+ * 6. Signed QR Passport Modal Dialog
+ */
+@Composable
+private fun QrPassportModalDialog(
+    signedPassport: SignedTalentPassport,
+    language: Language,
+    onVerify: (String, String, String) -> Boolean,
+    onTamper: (String) -> String,
+    onDismiss: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var verificationStatus by remember { mutableStateOf<Boolean?>(null) }
+    var currentPayload by remember { mutableStateOf(signedPassport.canonicalPayloadJson) }
+
+    LaunchedEffect(currentPayload) {
+        val qrContent = signedPassport.envelopeJson
+        qrBitmap = QrCodeGenerator.generateQrBitmap(qrContent, 600)
     }
 
-    // Dialog 1: Log Growth Measurement Dialog
-    if (showLogGrowthDialog) {
-        var heightInput by remember { mutableStateOf("") }
-        var weightInput by remember { mutableStateOf("") }
-        var inputError by remember { mutableStateOf(false) }
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.82f))
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(ObsidianCanvas.copy(alpha = 0.94f))
+                    .border(1.2.dp, GlassBorderEmerald, RoundedCornerShape(28.dp))
+                    .padding(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Modal Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = BilingualStrings.getDigitalPassportTitle(language),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = TextWhite
+                        )
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.10f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = TextWhite,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
 
-        AlertDialog(
-            onDismissRequest = { showLogGrowthDialog = false },
-            containerColor = CardNavy,
-            modifier = Modifier.imePadding(),
-            title = {
-                Text(
-                    text = BilingualStrings.getLogGrowthButton(language),
-                    color = TextWhite,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Crisp White 24.dp Rounded QR Quiet-Zone Card
+                    Box(
+                        modifier = Modifier
+                            .size(240.dp)
+                            .clip(RoundedCornerShape(22.dp))
+                            .background(Color.White)
+                            .padding(14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (qrBitmap != null) {
+                            Image(
+                                bitmap = qrBitmap!!.asImageBitmap(),
+                                contentDescription = "Signed QR Passport",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            CircularProgressIndicator(color = DeepNavy)
+                        }
+                    }
+
+                    // Key Fingerprint Pill
+                    LiquidGlassPill(
+                        text = "ECDSA KEY: ${signedPassport.keyFingerprint}",
+                        isSelected = true,
+                        tintColor = ElectricEmerald
+                    )
+
+                    // Verification Status Badge
+                    if (verificationStatus != null) {
+                        val isValid = verificationStatus == true
+                        val badgeColor = if (isValid) ElectricEmerald else CrimsonAlert
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(badgeColor.copy(alpha = 0.16f))
+                            .border(1.2.dp, badgeColor, RoundedCornerShape(14.dp))
+                            .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isValid) Icons.Default.CheckCircle else Icons.Default.Error,
+                                contentDescription = null,
+                                tint = badgeColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isValid) "Cryptographic Signature VALID (100% Offline)" else "Signature INVALID! Tampering Detected",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = badgeColor
+                            )
+                        }
+                    }
+
+                    // Action Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        LiquidGlassButton(
+                            onClick = {
+                                verificationStatus = onVerify(
+                                    currentPayload,
+                                    signedPassport.signatureBase64,
+                                    signedPassport.publicKeyBase64
+                                )
+                            },
+                            isPrimary = true,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Verify Integrity",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = DeepNavy,
+                                maxLines = 1
+                            )
+                        }
+
+                        LiquidGlassButton(
+                            onClick = {
+                                currentPayload = onTamper(currentPayload)
+                                verificationStatus = onVerify(
+                                    currentPayload,
+                                    signedPassport.signatureBase64,
+                                    signedPassport.publicKeyBase64
+                                )
+                            },
+                            isPrimary = false,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Simulate Tamper",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = CrimsonAlert,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
+                    // Copy Signed JSON Button
+                    LiquidGlassButton(
+                        onClick = {
+                            clipboardManager.setText(AnnotatedString(signedPassport.envelopeJson))
+                            Toast.makeText(context, "Signed JSON copied to clipboard", Toast.LENGTH_SHORT).show()
+                        },
+                        isPrimary = false,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            tint = TextWhite,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Copy Signed JSON",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = TextWhite
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 7. Log Height & Weight Dialog
+ */
+@Composable
+private fun LogGrowthDialog(
+    language: Language,
+    onDismiss: () -> Unit,
+    onConfirm: (Float, Float) -> Unit
+) {
+    var heightInput by remember { mutableStateOf("") }
+    var weightInput by remember { mutableStateOf("") }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.80f))
+                .imePadding()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(ObsidianCanvas.copy(alpha = 0.95f))
+                    .border(1.2.dp, GlassBorderEmerald, RoundedCornerShape(26.dp))
+                    .padding(20.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        text = "Track growth velocity to identify adolescent awkwardness and maturation timing.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextGray
+                        text = when (language) {
+                            Language.ENGLISH -> "Log Growth Measurement"
+                            Language.TAMIL -> "வளர்ச்சி அளவீடு பதிவு"
+                            Language.HINDI -> "शारीरिक माप दर्ज करें"
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = TextWhite
                     )
 
                     OutlinedTextField(
                         value = heightInput,
-                        onValueChange = {
-                            heightInput = it
-                            inputError = false
-                        },
-                        label = { Text(BilingualStrings.getHeightLabel(language)) },
-                        placeholder = { Text("e.g. 158.5") },
+                        onValueChange = { heightInput = it },
+                        label = { Text("Height (cm)", color = TextMuted) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = ElectricEmerald,
-                            unfocusedBorderColor = CardNavyElevated,
+                            unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
                             focusedTextColor = TextWhite,
                             unfocusedTextColor = TextWhite
                         ),
@@ -845,660 +1313,180 @@ fun PassportTab(
 
                     OutlinedTextField(
                         value = weightInput,
-                        onValueChange = {
-                            weightInput = it
-                            inputError = false
-                        },
-                        label = { Text(BilingualStrings.getWeightLabel(language)) },
-                        placeholder = { Text("e.g. 48.0") },
+                        onValueChange = { weightInput = it },
+                        label = { Text("Weight (kg)", color = TextMuted) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = ElectricEmerald,
-                            unfocusedBorderColor = CardNavyElevated,
+                            unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
                             focusedTextColor = TextWhite,
                             unfocusedTextColor = TextWhite
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (inputError) {
-                        Text(
-                            text = "Please enter valid positive numbers for height and weight.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = WarmAmber
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val h = heightInput.toFloatOrNull()
-                        val w = weightInput.toFloatOrNull()
-                        if (h != null && h > 0f && w != null && w > 0f) {
-                            onLogGrowthMeasurement(h, w)
-                            showLogGrowthDialog = false
-                        } else {
-                            inputError = true
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ElectricEmerald,
-                        contentColor = DeepNavy
-                    )
-                ) {
-                    Text(BilingualStrings.getSaveMeasurement(language))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogGrowthDialog = false }) {
-                    Text(BilingualStrings.getCancelButton(language), color = TextGray)
-                }
-            }
-        )
-    }
-
-    // Dialog 2: Add Achievement Dialog
-    if (showAddAchievementDialog) {
-        var titleInput by remember { mutableStateOf("") }
-        var issuerInput by remember { mutableStateOf("") }
-        var selectedLevel by remember { mutableStateOf(AchievementLevel.DISTRICT) }
-        var isVerifiedChecked by remember { mutableStateOf(true) }
-        var inputError by remember { mutableStateOf(false) }
-
-        AlertDialog(
-            onDismissRequest = { showAddAchievementDialog = false },
-            containerColor = CardNavy,
-            modifier = Modifier.imePadding(),
-            title = {
-                Text(
-                    text = BilingualStrings.getAddAchievementDialogTitle(language),
-                    color = TextWhite,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = titleInput,
-                        onValueChange = {
-                            titleInput = it
-                            inputError = false
-                        },
-                        label = { Text(BilingualStrings.getAchievementTitleLabel(language)) },
-                        placeholder = { Text("e.g. Best Raider U-16") },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ElectricEmerald,
-                            unfocusedBorderColor = CardNavyElevated,
-                            focusedTextColor = TextWhite,
-                            unfocusedTextColor = TextWhite
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = issuerInput,
-                        onValueChange = {
-                            issuerInput = it
-                            inputError = false
-                        },
-                        label = { Text(BilingualStrings.getIssuerLabel(language)) },
-                        placeholder = { Text("e.g. Coimbatore Sports Assoc.") },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ElectricEmerald,
-                            unfocusedBorderColor = CardNavyElevated,
-                            focusedTextColor = TextWhite,
-                            unfocusedTextColor = TextWhite
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // Level FilterChips with FlowRow
-                    Text(
-                        text = BilingualStrings.getLevelLabel(language),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextMuted
-                    )
-
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        AchievementLevel.entries.forEach { level ->
-                            FilterChip(
-                                selected = selectedLevel == level,
-                                onClick = { selectedLevel = level },
-                                label = {
-                                    Text(
-                                        text = level.getDisplayName(language),
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = ElectricEmeraldDark,
-                                    selectedLabelColor = TextWhite,
-                                    containerColor = DeepNavy,
-                                    labelColor = TextGray
-                                )
-                            )
-                        }
-                    }
-
-                    // Coach Verified Checkbox
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Checkbox(
-                            checked = isVerifiedChecked,
-                            onCheckedChange = { isVerifiedChecked = it },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = ElectricEmerald,
-                                uncheckedColor = TextMuted,
-                                checkmarkColor = DeepNavy
-                            )
-                        )
-                        Text(
-                            text = BilingualStrings.getCoachVerifiedLabel(language),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextWhite,
+                        LiquidGlassButton(
+                            onClick = onDismiss,
+                            isPrimary = false,
                             modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    if (inputError) {
-                        Text(
-                            text = "Please enter both title and issuing body.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = CrimsonAlert
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (titleInput.isNotBlank() && issuerInput.isNotBlank()) {
-                            onAddAchievement(titleInput.trim(), selectedLevel, issuerInput.trim(), isVerifiedChecked)
-                            showAddAchievementDialog = false
-                        } else {
-                            inputError = true
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                color = TextWhite,
+                                style = MaterialTheme.typography.labelMedium
+                            )
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ElectricEmerald,
-                        contentColor = DeepNavy
-                    )
-                ) {
-                    Text(BilingualStrings.getSaveButton(language))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddAchievementDialog = false }) {
-                    Text(BilingualStrings.getCancelButton(language), color = TextGray)
+
+                        LiquidGlassButton(
+                            onClick = {
+                                val h = heightInput.toFloatOrNull() ?: 0f
+                                val w = weightInput.toFloatOrNull() ?: 0f
+                                if (h > 0f && w > 0f) {
+                                    onConfirm(h, w)
+                                }
+                            },
+                            isPrimary = true,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Save",
+                                color = DeepNavy,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
                 }
             }
-        )
-    }
-
-    // Dialog 3: Cryptographic QR Talent Passport Dialog (Vertically scrollable)
-    if (showQrPassportDialog && signedPassport != null) {
-        val context = LocalContext.current
-        val clipboardManager = LocalClipboardManager.current
-        var qrBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-        var verificationResult by remember { mutableStateOf<Boolean?>(null) }
-
-        LaunchedEffect(signedPassport) {
-            qrBitmap = QrCodeGenerator.generateQrBitmap(signedPassport.envelopeJson, 512)
         }
+    }
+}
 
-        AlertDialog(
-            onDismissRequest = {
-                showQrPassportDialog = false
-                verificationResult = null
-            },
-            containerColor = CardNavy,
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+/**
+ * 8. Add Achievement Dialog
+ */
+@Composable
+private fun AddAchievementDialog(
+    language: Language,
+    onDismiss: () -> Unit,
+    onConfirm: (String, AchievementLevel, String, Boolean) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var issuer by remember { mutableStateOf("") }
+    var selectedLevel by remember { mutableStateOf(AchievementLevel.DISTRICT) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.80f))
+                .imePadding()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(ObsidianCanvas.copy(alpha = 0.95f))
+                    .border(1.2.dp, GlassBorderEmerald, RoundedCornerShape(26.dp))
+                    .padding(20.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = BilingualStrings.getQrDialogTitle(language),
-                        color = TextWhite,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f, fill = false)
+                        text = when (language) {
+                            Language.ENGLISH -> "Add Tournament Achievement"
+                            Language.TAMIL -> "போட்டி சாதனை சேர்"
+                            Language.HINDI -> "प्रतियोगिता उपलब्धि जोड़ें"
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = TextWhite
                     )
-                    Surface(
-                        color = ElectricEmerald.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "v1.0",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ElectricEmerald,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // QR Code Display
-                    Box(
-                        modifier = Modifier
-                            .size(220.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val bmp = qrBitmap
-                        if (bmp != null) {
-                            Image(
-                                bitmap = bmp.asImageBitmap(),
-                                contentDescription = "Signed QR Code",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            CircularProgressIndicator(
-                                color = DeepNavy,
-                                modifier = Modifier.size(36.dp)
-                            )
-                        }
-                    }
 
-                    // Key Fingerprint Pill
-                    Surface(
-                        color = DeepNavy,
-                        shape = RoundedCornerShape(8.dp),
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Title (e.g. Gold Medal Raider)", color = TextMuted) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = ElectricEmerald,
+                            unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
+                            focusedTextColor = TextWhite,
+                            unfocusedTextColor = TextWhite
+                        ),
                         modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Key Fingerprint",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted
-                            )
-                            Text(
-                                text = signedPassport.keyFingerprint,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = ElectricEmerald,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                    )
 
-                    // Verification Status Banner (Live feedback)
-                    when (verificationResult) {
-                        true -> {
-                            Surface(
-                                color = ElectricEmeraldDark.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(1.dp, ElectricEmerald),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = "Valid",
-                                        tint = ElectricEmerald,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = BilingualStrings.getSignatureValidBanner(language),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = ElectricEmerald,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-                        false -> {
-                            Surface(
-                                color = CrimsonAlert.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(1.dp, CrimsonAlert),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Error,
-                                        contentDescription = "Tampered",
-                                        tint = CrimsonAlert,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = BilingualStrings.getSignatureTamperedBanner(language),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = CrimsonAlert,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-                        null -> {
-                            Text(
-                                text = BilingualStrings.getQrScanInstruction(language),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextGray
-                            )
-                        }
-                    }
+                    OutlinedTextField(
+                        value = issuer,
+                        onValueChange = { issuer = it },
+                        label = { Text("Issuing Authority (e.g. TNKBA)", color = TextMuted) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = ElectricEmerald,
+                            unfocusedBorderColor = TextMuted.copy(alpha = 0.3f),
+                            focusedTextColor = TextWhite,
+                            unfocusedTextColor = TextWhite
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                    // Offline Verification Demo Buttons
+                    // Level selector chips
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                val isValid = onVerifyPassport(
-                                    signedPassport.canonicalPayloadJson,
-                                    signedPassport.signatureBase64,
-                                    signedPassport.publicKeyBase64
-                                )
-                                verificationResult = isValid
-                            },
-                            border = BorderStroke(1.dp, ElectricEmerald),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = BilingualStrings.getVerifyIntegrityButton(language),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = ElectricEmerald
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                val tampered = onTamperPayload(signedPassport.canonicalPayloadJson)
-                                val isValid = onVerifyPassport(
-                                    tampered,
-                                    signedPassport.signatureBase64,
-                                    signedPassport.publicKeyBase64
-                                )
-                                verificationResult = isValid
-                            },
-                            border = BorderStroke(1.dp, WarmAmber),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = BilingualStrings.getSimulateTamperButton(language),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = WarmAmber
+                        AchievementLevel.entries.forEach { level ->
+                            LiquidGlassPill(
+                                text = level.name,
+                                isSelected = level == selectedLevel,
+                                tintColor = WarmAmber,
+                                onClick = { selectedLevel = level }
                             )
                         }
                     }
 
-                    // Copy Signed JSON Button
-                    TextButton(
-                        onClick = {
-                            clipboardManager.setText(AnnotatedString(signedPassport.envelopeJson))
-                            Toast.makeText(
-                                context,
-                                BilingualStrings.getCopiedToClipboard(language),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = null,
-                            tint = TextMuted,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = BilingualStrings.getCopySignedJsonButton(language),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = TextGray
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showQrPassportDialog = false
-                        verificationResult = null
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ElectricEmerald,
-                        contentColor = DeepNavy
-                    )
-                ) {
-                    Text(BilingualStrings.getCloseButton(language))
-                }
-            }
-        )
-    }
-}
+                        LiquidGlassButton(
+                            onClick = onDismiss,
+                            isPrimary = false,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                color = TextWhite,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun AchievementItemRow(
-    achievement: Achievement,
-    language: Language,
-    onDelete: () -> Unit
-) {
-    Surface(
-        color = DeepNavy,
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(1.dp, CardNavyElevated),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    // Level Badge
-                    Surface(
-                        color = when (achievement.level) {
-                            AchievementLevel.STATE -> WarmAmberDark.copy(alpha = 0.3f)
-                            AchievementLevel.DISTRICT -> ElectricEmeraldDark.copy(alpha = 0.3f)
-                            AchievementLevel.SCHOOL -> CardNavyElevated
-                        },
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = achievement.level.getDisplayName(language),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = when (achievement.level) {
-                                AchievementLevel.STATE -> WarmAmber
-                                AchievementLevel.DISTRICT -> ElectricEmerald
-                                AchievementLevel.SCHOOL -> TextGray
+                        LiquidGlassButton(
+                            onClick = {
+                                if (title.isNotBlank()) {
+                                    onConfirm(title, selectedLevel, issuer.ifBlank { "TNKBA" }, true)
+                                }
                             },
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    // Verified vs Pending Badge
-                    if (achievement.isVerified) {
-                        Surface(
-                            color = ElectricEmeraldDark.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(8.dp)
+                            isPrimary = true,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = ElectricEmerald,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                                Text(
-                                    text = BilingualStrings.getVerifiedBadge(language),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = ElectricEmerald
-                                )
-                            }
-                        }
-                    } else {
-                        Surface(
-                            color = CardNavyElevated,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Schedule,
-                                    contentDescription = null,
-                                    tint = TextMuted,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                                Text(
-                                    text = BilingualStrings.getPendingBadge(language),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = TextMuted
-                                )
-                            }
+                            Text(
+                                text = "Add",
+                                color = DeepNavy,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                            )
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = achievement.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextWhite,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = "${achievement.issuerName} • ${DateUtils.formatDate(achievement.awardedAt)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextGray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
-
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = TextMuted,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = TextMuted,
-            modifier = Modifier.weight(1f, fill = false),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            color = TextWhite
-        )
-    }
-}
-
-@Composable
-private fun MetricCard(
-    title: String,
-    value: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = CardNavy),
-        border = BorderStroke(1.dp, CardNavyElevated),
-        modifier = modifier
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall,
-                color = TextMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                color = ElectricEmerald,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }

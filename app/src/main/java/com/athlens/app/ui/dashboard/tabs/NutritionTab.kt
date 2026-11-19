@@ -1,14 +1,19 @@
 package com.athlens.app.ui.dashboard.tabs
 
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,27 +27,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalDrink
-import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,33 +44,48 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.athlens.app.R
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.model.Sport
 import com.athlens.app.domain.nutrition.NutritionCategory
 import com.athlens.app.domain.nutrition.NutritionMealItem
 import com.athlens.app.domain.nutrition.NutritionPlanProvider
-import com.athlens.app.ui.theme.CardNavy
-import com.athlens.app.ui.theme.CardNavyElevated
+import com.athlens.app.ui.theme.ContourGlassCard
 import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
-import com.athlens.app.ui.theme.ElectricEmeraldDark
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassButton
+import com.athlens.app.ui.theme.LiquidGlassPill
+import com.athlens.app.ui.theme.OceanTeal
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
 import com.athlens.app.ui.theme.WarmAmber
 import com.athlens.app.ui.util.BilingualStrings
+import dev.chrisbanes.haze.HazeState
 import java.time.LocalDate
 
 @Composable
 fun NutritionTab(
     sport: Sport = Sport.KABADDI,
     language: Language,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hazeState: HazeState? = null
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val scrollState = rememberScrollState()
 
     // Persistent Daily Hydration Tracker (saved per calendar day in SharedPreferences)
@@ -92,215 +98,214 @@ fun NutritionTab(
     }
 
     val checkedMeals = remember { mutableStateMapOf<String, Boolean>() }
-
     val meals = remember(sport) {
         NutritionPlanProvider.getPlanForSport(sport)
     }
 
     val targetMl = 3000
     val progress = (waterConsumedMl.toFloat() / targetMl.toFloat()).coerceIn(0f, 1f)
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 600),
+        label = "water_progress"
+    )
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // Top Header Card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(2.dp, ElectricEmerald),
+        // 1. Editorial Header Bar
+        NutritionHeaderBar(sport = sport, language = language, hazeState = hazeState)
+
+        // 2. Liquid Hydration Tracker Card
+        ContourGlassCard(
+            hazeState = hazeState,
+            borderBrush = GlassBorderEmerald,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Top Row: Water drop icon + Title + Percentage
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Restaurant,
-                            contentDescription = "Nutrition",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(26.dp)
-                        )
-                        Text(
-                            text = BilingualStrings.getNutritionHeaderTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(OceanTeal.copy(alpha = 0.22f))
+                                .border(1.2.dp, OceanTeal, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WaterDrop,
+                                contentDescription = "Water Intake",
+                                tint = OceanTeal,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = when (language) {
+                                    Language.ENGLISH -> "Daily Hydration Tracker"
+                                    Language.TAMIL -> "தினசரி நீரேற்றம்"
+                                    Language.HINDI -> "दैनिक जलयोजन ट्रैकर"
+                                },
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = TextWhite
+                            )
+                            Text(
+                                text = "Electrolytes & Fluid Balance",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OceanTeal
+                            )
+                        }
                     }
 
-                    Surface(
-                        color = ElectricEmeraldDark,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = sport.getDisplayName(language),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextWhite,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = BilingualStrings.getNutritionHeaderSubtitle(language),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextGray
-                )
-            }
-        }
-
-        // Daily Hydration Tracker Card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.dp, CardNavyElevated),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.WaterDrop,
-                            contentDescription = "Hydration",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Text(
-                            text = BilingualStrings.getHydrationCardTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = TextWhite,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    Text(
-                        text = BilingualStrings.getHydrationGoalLabel(waterConsumedMl, language),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = ElectricEmerald
+                    LiquidGlassPill(
+                        text = "${(progress * 100).toInt()}%",
+                        isSelected = true,
+                        tintColor = OceanTeal
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LinearProgressIndicator(
-                    progress = { progress },
+                // Translucent Glass Water Progress Bar
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = ElectricEmerald,
-                    trackColor = DeepNavy,
-                )
+                        .height(14.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .border(1.dp, GlassBorderStandard, CircleShape)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(animatedProgress)
+                            .fillMaxHeight()
+                            .clip(CircleShape)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(OceanTeal, ElectricEmerald)
+                                )
+                            )
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
+                // Volume readout & Controls Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        onClick = {
-                            val newAmount = (waterConsumedMl + 250).coerceAtMost(5000)
-                            waterConsumedMl = newAmount
-                            hydrationPrefs.edit().putInt("water_$todayDateStr", newAmount).apply()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ElectricEmerald,
-                            contentColor = DeepNavy
+                    Text(
+                        text = "$waterConsumedMl / $targetMl ml",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFeatureSettings = "tnum"
                         ),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = 44.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = BilingualStrings.getAddWaterButton(language),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+                        color = TextWhite
+                    )
 
-                    OutlinedButton(
-                        onClick = {
-                            waterConsumedMl = 0
-                            hydrationPrefs.edit().putInt("water_$todayDateStr", 0).apply()
-                        },
-                        border = BorderStroke(1.dp, CardNavyElevated),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.heightIn(min = 44.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Reset",
-                            tint = TextMuted,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = BilingualStrings.getResetHydration(language),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = TextMuted
+                        LiquidGlassButton(
+                            onClick = {
+                                waterConsumedMl = (waterConsumedMl + 250).coerceAtMost(5000)
+                                hydrationPrefs.edit().putInt("water_$todayDateStr", waterConsumedMl).apply()
+                            },
+                            isPrimary = true,
+                            modifier = Modifier.heightIn(min = 38.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WaterDrop,
+                                contentDescription = null,
+                                tint = DeepNavy,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "+250 ml",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontFeatureSettings = "tnum"
+                                ),
+                                color = DeepNavy
+                            )
+                        }
+
+                        LiquidGlassPill(
+                            text = "Reset",
+                            isSelected = false,
+                            onClick = {
+                                waterConsumedMl = 0
+                                hydrationPrefs.edit().putInt("water_$todayDateStr", 0).apply()
+                            }
                         )
                     }
                 }
             }
         }
 
-        // Daily Nutrition & Recovery Plan Meal Checklist
-        Text(
-            text = when (language) {
-                Language.ENGLISH -> "Daily Meal & Recovery Checklist"
-                Language.TAMIL -> "தினசரி உணவு மற்றும் மீட்பு பட்டியல்"
-                Language.HINDI -> "दैनिक आहार और रिकवरी चेकलिस्ट"
-            },
-            style = MaterialTheme.typography.titleMedium,
-            color = ElectricEmerald
-        )
+        // 3. Section Title: Grassroots Nutrition Checklist
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = when (language) {
+                    Language.ENGLISH -> "Daily Fueling Checklist"
+                    Language.TAMIL -> "தினசரி உணவுப் பட்டியல்"
+                    Language.HINDI -> "दैनिक पोषण योजना"
+                },
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = ElectricEmerald
+            )
 
-        meals.forEach { meal ->
-            val isChecked = checkedMeals[meal.id] ?: false
-            MealItemCard(
-                meal = meal,
-                isChecked = isChecked,
-                language = language,
-                onCheckedChange = { checkedMeals[meal.id] = it }
+            val checkedCount = checkedMeals.values.count { it }
+            LiquidGlassPill(
+                text = "$checkedCount / ${meals.size} Done",
+                isSelected = checkedCount > 0,
+                tintColor = ElectricEmerald
             )
         }
 
-        // Educational Disclaimer Footer
-        Surface(
-            color = CardNavyElevated.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(10.dp),
+        // 4. Photo-Backed Meal Cards
+        meals.forEach { meal ->
+            val isChecked = checkedMeals[meal.id] ?: false
+            MealPhotoGlassCard(
+                meal = meal,
+                isChecked = isChecked,
+                language = language,
+                onToggle = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    checkedMeals[meal.id] = !isChecked
+                },
+                hazeState = hazeState
+            )
+        }
+
+        // 5. Muted Disclaimer Footer
+        ContourGlassCard(
+            hazeState = hazeState,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.padding(14.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -308,141 +313,260 @@ fun NutritionTab(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
                     tint = TextMuted,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Text(
-                    text = BilingualStrings.getNutritionDisclaimer(language),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMuted,
-                    modifier = Modifier.weight(1f)
+                    text = when (language) {
+                        Language.ENGLISH -> "Formulated for Tamil Nadu grassroots kabaddi & kho-kho athletes using affordable, indigenous low-cost staples."
+                        Language.TAMIL -> "தமிழ்நாட்டு தடகள வீரர்களுக்கான ஊட்டச்சத்து வழிகாட்டி - எளிய, சத்தான பாரம்பரிய உணவுப் பொருட்கள்."
+                        Language.HINDI -> "तमिलनाडु के खिलाड़ियों हेतु किफायती, स्थानीय पौष्टिक आहार योजना।"
+                    },
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
+                    color = TextGray
                 )
             }
         }
 
-        // Bottom space so last card glides smoothly underneath floating glass nav bar
+        // Bottom clearance for floating nav bar
         Spacer(modifier = Modifier.navigationBarsPadding().height(104.dp))
     }
 }
 
+/**
+ * Editorial Header Bar
+ */
 @Composable
-private fun MealItemCard(
+private fun NutritionHeaderBar(
+    sport: Sport,
+    language: Language,
+    hazeState: HazeState? = null
+) {
+    ContourGlassCard(
+        hazeState = hazeState,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(ElectricEmerald.copy(alpha = 0.18f))
+                        .border(1.2.dp, ElectricEmerald, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Restaurant,
+                        contentDescription = "Nutrition",
+                        tint = ElectricEmerald,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = BilingualStrings.getNutritionHeaderTitle(language),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.5.sp
+                        ),
+                        color = TextWhite,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "100% Offline Indigenous Food Guide",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                        color = TextMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            LiquidGlassPill(
+                text = sport.getDisplayName(language),
+                isSelected = true,
+                tintColor = ElectricEmerald
+            )
+        }
+    }
+}
+
+/**
+ * Photo-Backed Meal & Recovery Checklist Card
+ */
+@Composable
+private fun MealPhotoGlassCard(
     meal: NutritionMealItem,
     isChecked: Boolean,
     language: Language,
-    onCheckedChange: (Boolean) -> Unit
+    onToggle: () -> Unit,
+    hazeState: HazeState? = null
 ) {
-    val categoryIcon = when (meal.category) {
-        NutritionCategory.PRE_TRAINING_ENERGY -> Icons.Default.FitnessCenter
-        NutritionCategory.POST_TRAINING_PROTEIN -> Icons.Default.Eco
-        NutritionCategory.HYDRATION_ELECTROLYTES -> Icons.Default.LocalDrink
-        NutritionCategory.EVENING_RECOVERY -> Icons.Default.Nightlight
+    val drawableRes = when (meal.category) {
+        NutritionCategory.PRE_TRAINING_ENERGY -> R.drawable.img_food_preworkout
+        NutritionCategory.POST_TRAINING_PROTEIN -> R.drawable.img_food_protein
+        NutritionCategory.HYDRATION_ELECTROLYTES -> R.drawable.img_food_hydration
+        NutritionCategory.EVENING_RECOVERY -> R.drawable.img_food_recovery
     }
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (isChecked) CardNavyElevated else CardNavy
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isChecked) ElectricEmerald.copy(alpha = 0.6f) else CardNavyElevated
-        ),
+    val cardBorder = if (isChecked) GlassBorderEmerald else GlassBorderStandard
+
+    ContourGlassCard(
+        hazeState = hazeState,
+        borderBrush = cardBorder,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!isChecked) }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onToggle
+            )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left: Rounded 84dp x 84dp Real Food Photography Thumbnail
+            Box(
+                modifier = Modifier
+                    .size(84.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(18.dp))
             ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(
-                        imageVector = categoryIcon,
-                        contentDescription = null,
-                        tint = if (isChecked) ElectricEmerald else WarmAmber,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Column(modifier = Modifier.weight(1f, fill = false)) {
-                        Text(
-                            text = meal.getTitle(language),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (isChecked) ElectricEmerald else TextWhite,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                Image(
+                    painter = painterResource(drawableRes),
+                    contentDescription = meal.getTitle(language),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Dark gradient scrim over photo for depth
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                0.0f to Color.Transparent,
+                                1.0f to Color.Black.copy(alpha = 0.40f)
+                            )
                         )
-                        Text(
-                            text = meal.getTiming(language),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = WarmAmber,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                )
+
+                // Glowing emerald overlay when marked completed
+                if (isChecked) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(ElectricEmerald.copy(alpha = 0.55f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(DeepNavy),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Completed",
+                                tint = ElectricEmerald,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
+            }
 
-                Surface(
-                    color = DeepNavy,
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, CardNavyElevated)
+            // Right: Content Column
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Top row: Title + Cost Pill
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
                     Text(
+                        text = meal.getTitle(language),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 19.sp
+                        ),
+                        color = if (isChecked) ElectricEmerald else TextWhite,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    LiquidGlassPill(
                         text = meal.costEstimate,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ElectricEmerald,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        maxLines = 1
+                        isSelected = isChecked,
+                        tintColor = WarmAmber
                     )
                 }
 
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = onCheckedChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = ElectricEmerald,
-                        checkmarkColor = DeepNavy,
-                        uncheckedColor = TextMuted
-                    )
+                // Timing Subtitle
+                Text(
+                    text = meal.getTiming(language),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OceanTeal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Ingredients / Macro Benefit
+                Text(
+                    text = meal.getIngredients(language),
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
+                    color = TextGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = meal.getMacroBenefit(language),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextMuted,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(color = CardNavyElevated)
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Ingredients
-            Text(
-                text = meal.getIngredients(language),
-                style = MaterialTheme.typography.bodySmall,
-                color = TextGray
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Macro / Recovery Benefit
-            Surface(
-                color = DeepNavy.copy(alpha = 0.6f),
-                shape = RoundedCornerShape(6.dp)
+            // Trailing Glass Checkbox indicator
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .background(if (isChecked) ElectricEmerald else Color.White.copy(alpha = 0.08f))
+                    .border(
+                        1.2.dp,
+                        if (isChecked) ElectricEmerald else Color.White.copy(alpha = 0.30f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(ElectricEmerald)
-                    )
-                    Text(
-                        text = meal.getMacroBenefit(language),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ElectricEmerald
+                if (isChecked) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = DeepNavy,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
