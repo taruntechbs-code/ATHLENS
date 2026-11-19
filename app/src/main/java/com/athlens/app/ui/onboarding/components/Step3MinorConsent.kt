@@ -1,6 +1,5 @@
 package com.athlens.app.ui.onboarding.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
@@ -27,12 +24,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.model.Language
-import com.athlens.app.ui.theme.BorderDark
-import com.athlens.app.ui.theme.CardNavy
-import com.athlens.app.ui.theme.CardNavyElevated
+import com.athlens.app.ui.theme.ContourGlassCard
+import com.athlens.app.ui.theme.DeepNavy
 import com.athlens.app.ui.theme.ElectricEmerald
+import com.athlens.app.ui.theme.GlassBorderAmber
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
@@ -70,52 +70,49 @@ fun Step3MinorConsent(
         }
 
         if (isMinor) {
-            // Minor Protection Notice Banner
-            Card(
-                colors = CardDefaults.cardColors(containerColor = CardNavy),
-                border = BorderStroke(2.dp, WarmAmber),
+            // Minor Protection Notice Glass Card
+            ContourGlassCard(
+                borderBrush = GlassBorderAmber,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Shield,
-                            contentDescription = "Minor Protection",
-                            tint = WarmAmber,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = when (language) {
-                                    Language.ENGLISH -> "Minor Athlete Protection Notice (Age $calculatedAge)"
-                                    Language.TAMIL -> "இளம்பருவ வீரர் பாதுகாப்பு அறிவிப்பு ($calculatedAge வயது)"
-                                    Language.HINDI -> "नाबालिग खिलाड़ी सुरक्षा सूचना (आयु $calculatedAge वर्ष)"
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = WarmAmber
-                            )
-                            Text(
-                                text = when (language) {
-                                    Language.ENGLISH -> "Mandatory Grassroots Sports Policy Compliance"
-                                    Language.TAMIL -> "தமிழ்நாடு விளையாட்டுக் கொள்கை வழிகாட்டுதல்"
-                                    Language.HINDI -> "अनिवार्य खेल नीति अनुपालन"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextMuted
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = BilingualStrings.getGuardianConsentNotice(language),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextWhite
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = "Minor Protection",
+                        tint = WarmAmber,
+                        modifier = Modifier.size(28.dp)
                     )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Minor Athlete Protection Notice (Age $calculatedAge)"
+                                Language.TAMIL -> "இளம்பருவ வீரர் பாதுகாப்பு அறிவிப்பு ($calculatedAge வயது)"
+                                Language.HINDI -> "नाबालिग खिलाड़ी सुरक्षा सूचना (आयु $calculatedAge वर्ष)"
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = WarmAmber
+                        )
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Mandatory Grassroots Sports Policy Compliance"
+                                Language.TAMIL -> "தமிழ்நாடு விளையாட்டுக் கொள்கை வழிகாட்டுதல்"
+                                Language.HINDI -> "अनिवार्य खेल नीति अनुपालन"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMuted
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = BilingualStrings.getGuardianConsentNotice(language),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextWhite
+                )
             }
 
             // Mandatory Guardian Name Field
@@ -138,26 +135,28 @@ fun Step3MinorConsent(
                     focusedTextColor = TextWhite,
                     unfocusedTextColor = TextWhite,
                     focusedBorderColor = ElectricEmerald,
-                    unfocusedBorderColor = WarmAmber,
+                    unfocusedBorderColor = WarmAmber.copy(alpha = 0.5f),
                     focusedLabelColor = ElectricEmerald,
                     unfocusedLabelColor = WarmAmber,
-                    cursorColor = ElectricEmerald
+                    cursorColor = ElectricEmerald,
+                    focusedContainerColor = Color(0x181C2541),
+                    unfocusedContainerColor = Color(0x101C2541)
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Mandatory Guardian Consent Checkbox
-            Card(
-                colors = CardDefaults.cardColors(containerColor = CardNavyElevated),
-                border = BorderStroke(1.dp, if (guardianConsentGiven) ElectricEmerald else BorderDark),
+            // Mandatory Guardian Consent Checkbox Glass Card
+            ContourGlassCard(
+                borderBrush = if (guardianConsentGiven) GlassBorderEmerald else GlassBorderStandard,
+                containerColor = if (guardianConsentGiven) ElectricEmerald.copy(alpha = 0.08f) else Color.Transparent,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onGuardianConsentChanged(!guardianConsentGiven) }
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Checkbox(
                         checked = guardianConsentGiven,
@@ -165,7 +164,7 @@ fun Step3MinorConsent(
                         colors = CheckboxDefaults.colors(
                             checkedColor = ElectricEmerald,
                             uncheckedColor = WarmAmber,
-                            checkmarkColor = com.athlens.app.ui.theme.DeepNavy
+                            checkmarkColor = DeepNavy
                         )
                     )
                     Text(
@@ -181,56 +180,54 @@ fun Step3MinorConsent(
                 }
             }
         } else {
-            // Adult Athlete Card
-            Card(
-                colors = CardDefaults.cardColors(containerColor = CardNavy),
-                border = BorderStroke(1.dp, ElectricEmerald),
+            // Adult Athlete Glass Card
+            ContourGlassCard(
+                borderBrush = GlassBorderEmerald,
+                containerColor = ElectricEmerald.copy(alpha = 0.06f),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Adult Athlete",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = when (language) {
-                                    Language.ENGLISH -> "Adult Athlete (Age $calculatedAge)"
-                                    Language.TAMIL -> "வயது வந்த வீரர் ($calculatedAge வயது)"
-                                    Language.HINDI -> "वयस्क खिलाड़ी (आयु $calculatedAge वर्ष)"
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = ElectricEmerald
-                            )
-                            Text(
-                                text = when (language) {
-                                    Language.ENGLISH -> "Direct Registration Verified"
-                                    Language.TAMIL -> "நேரடி பதிவு அனுமதிக்கப்பட்டது"
-                                    Language.HINDI -> "सीधा पंजीकरण सत्यापित"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextGray
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = BilingualStrings.getAdultNotice(language),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextWhite
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Adult Athlete",
+                        tint = ElectricEmerald,
+                        modifier = Modifier.size(32.dp)
                     )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Adult Athlete (Age $calculatedAge)"
+                                Language.TAMIL -> "வயது வந்த வீரர் ($calculatedAge வயது)"
+                                Language.HINDI -> "वयस्क खिलाड़ी (आयु $calculatedAge वर्ष)"
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = ElectricEmerald
+                        )
+                        Text(
+                            text = when (language) {
+                                Language.ENGLISH -> "Direct Registration Verified"
+                                Language.TAMIL -> "நேரடி பதிவு அனுமதிக்கப்பட்டது"
+                                Language.HINDI -> "सीधा पंजीकरण सत्यापित"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextGray
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = BilingualStrings.getAdultNotice(language),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextWhite
+                )
             }
         }
 
-        // Offline Encryption Guarantee Card
+        // Offline Encryption Guarantee
         Row(
             modifier = Modifier
                 .fillMaxWidth()

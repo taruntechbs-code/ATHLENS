@@ -21,6 +21,13 @@ val TextMuted = Color(0xFF94A3B8)
 val BorderDark = Color(0xFF334155)
 val CrimsonAlert = Color(0xFFEF4444)
 
+// Liquid Glass & Ambient Mesh Palette
+val ObsidianCanvas = Color(0xFF050814)
+val OceanTeal = Color(0xFF0D9488)
+val MidnightSapphire = Color(0xFF1D4ED8)
+val GlassSurfaceDark = Color(0x1A1C2541)
+val GlassSurfaceElevated = Color(0x33243054)
+
 // Light Theme Palette
 val SurfaceLight = Color(0xFFF8FAFC)
 val CardLight = Color(0xFFFFFFFF)

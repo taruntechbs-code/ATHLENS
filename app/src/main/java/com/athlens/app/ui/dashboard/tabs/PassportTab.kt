@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -794,8 +795,8 @@ fun PassportTab(
             }
         }
 
-        // Extra spacing so last element never collides with navigation bar
-        Spacer(modifier = Modifier.height(24.dp))
+        // Extra spacing so last element glides smoothly underneath floating glass nav bar
+        Spacer(modifier = Modifier.navigationBarsPadding().height(104.dp))
     }
 
     // Dialog 1: Log Growth Measurement Dialog

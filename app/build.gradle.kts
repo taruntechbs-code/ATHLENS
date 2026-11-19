@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.play.services.nearby)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.haze)
 
     implementation(libs.kotlinx.coroutines.android)
 

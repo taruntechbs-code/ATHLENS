@@ -1,6 +1,5 @@
 package com.athlens.app.ui.onboarding.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,10 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -32,10 +27,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.model.Role
-import com.athlens.app.ui.theme.CardNavy
-import com.athlens.app.ui.theme.CardNavyElevated
-import com.athlens.app.ui.theme.DeepNavy
+import com.athlens.app.ui.theme.ContourGlassCard
 import com.athlens.app.ui.theme.ElectricEmerald
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassPill
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextWhite
 import com.athlens.app.ui.util.BilingualStrings
@@ -67,51 +63,33 @@ fun Step1LanguageRole(
             )
         }
 
-        // Language Selector Section
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.dp, CardNavyElevated),
+        // Language Selector Glass Section
+        ContourGlassCard(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = when (selectedLanguage) {
-                        Language.ENGLISH -> "Select Language"
-                        Language.TAMIL -> "மொழியைத் தேர்ந்தெடுக்கவும்"
-                        Language.HINDI -> "भाषा चुनें"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ElectricEmerald
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Language.entries.forEach { lang ->
-                        val isSelected = lang == selectedLanguage
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { onLanguageSelected(lang) },
-                            label = {
-                                Text(
-                                    text = lang.nativeName,
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = ElectricEmerald,
-                                selectedLabelColor = DeepNavy,
-                                containerColor = CardNavyElevated,
-                                labelColor = TextWhite
-                            ),
-                            border = BorderStroke(
-                                width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) ElectricEmerald else Color.Transparent
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+            Text(
+                text = when (selectedLanguage) {
+                    Language.ENGLISH -> "Select Language"
+                    Language.TAMIL -> "மொழியைத் தேர்ந்தெடுக்கவும்"
+                    Language.HINDI -> "भाषा चुनें"
+                },
+                style = MaterialTheme.typography.titleMedium,
+                color = ElectricEmerald
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Language.entries.forEach { lang ->
+                    val isSelected = lang == selectedLanguage
+                    LiquidGlassPill(
+                        text = lang.nativeName,
+                        isSelected = isSelected,
+                        tintColor = ElectricEmerald,
+                        onClick = { onLanguageSelected(lang) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -129,7 +107,7 @@ fun Step1LanguageRole(
             )
 
             Role.entries.forEach { role ->
-                RoleCard(
+                RoleGlassCard(
                     role = role,
                     isSelected = role == selectedRole,
                     currentLanguage = selectedLanguage,
@@ -141,7 +119,7 @@ fun Step1LanguageRole(
 }
 
 @Composable
-private fun RoleCard(
+private fun RoleGlassCard(
     role: Role,
     isSelected: Boolean,
     currentLanguage: Language,
@@ -177,29 +155,24 @@ private fun RoleCard(
         Language.HINDI -> "${role.displayNameEn} • ${role.displayNameHi}"
     }
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) CardNavyElevated else CardNavy
-        ),
-        border = BorderStroke(
-            width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) ElectricEmerald else CardNavyElevated
-        ),
+    ContourGlassCard(
+        borderBrush = if (isSelected) GlassBorderEmerald else GlassBorderStandard,
+        containerColor = if (isSelected) ElectricEmerald.copy(alpha = 0.08f) else Color.Transparent,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp)
             .clickable(onClick = onSelect)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = role.displayNameEn,
                 tint = if (isSelected) ElectricEmerald else TextGray,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(34.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(

@@ -1,7 +1,6 @@
 package com.athlens.app.ui.onboarding.components
 
 import android.app.DatePickerDialog
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,24 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,16 +32,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.athlens.app.domain.model.Language
 import com.athlens.app.domain.model.PlayingPosition
 import com.athlens.app.domain.model.Sport
 import com.athlens.app.ui.theme.BorderDark
-import com.athlens.app.ui.theme.CardNavy
-import com.athlens.app.ui.theme.CardNavyElevated
-import com.athlens.app.ui.theme.DeepNavy
+import com.athlens.app.ui.theme.ContourGlassCard
 import com.athlens.app.ui.theme.ElectricEmerald
+import com.athlens.app.ui.theme.GlassBorderAmber
+import com.athlens.app.ui.theme.GlassBorderEmerald
+import com.athlens.app.ui.theme.GlassBorderStandard
+import com.athlens.app.ui.theme.LiquidGlassPill
 import com.athlens.app.ui.theme.TextGray
 import com.athlens.app.ui.theme.TextMuted
 import com.athlens.app.ui.theme.TextWhite
@@ -83,7 +78,7 @@ fun Step2ProfileDetails(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         // Step Header
         Column {
@@ -116,107 +111,88 @@ fun Step2ProfileDetails(
                 focusedTextColor = TextWhite,
                 unfocusedTextColor = TextWhite,
                 focusedBorderColor = ElectricEmerald,
-                unfocusedBorderColor = BorderDark,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.20f),
                 focusedLabelColor = ElectricEmerald,
                 unfocusedLabelColor = TextGray,
-                cursorColor = ElectricEmerald
+                cursorColor = ElectricEmerald,
+                focusedContainerColor = Color(0x181C2541),
+                unfocusedContainerColor = Color(0x101C2541)
             ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Date of Birth & Age Pill
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardNavy),
-            border = BorderStroke(1.dp, CardNavyElevated),
+        // Date of Birth & Age Pill inside ContourGlassCard
+        ContourGlassCard(
+            borderBrush = if (dateOfBirthMillis > 0L) {
+                if (isMinor) GlassBorderAmber else GlassBorderEmerald
+            } else GlassBorderStandard,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Text(
-                    text = BilingualStrings.getDateOfBirthLabel(language),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = ElectricEmerald
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = BilingualStrings.getDateOfBirthLabel(language),
+                style = MaterialTheme.typography.titleSmall,
+                color = ElectricEmerald
+            )
+            Spacer(modifier = Modifier.height(10.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val calendar = Calendar.getInstance()
-                            if (dateOfBirthMillis > 0L) {
-                                calendar.timeInMillis = dateOfBirthMillis
-                            } else {
-                                calendar.add(Calendar.YEAR, -16)
-                            }
-
-                            DatePickerDialog(
-                                context,
-                                { _, year, month, dayOfMonth ->
-                                    val localDate = LocalDate.of(year, month + 1, dayOfMonth)
-                                    val millis = localDate.atStartOfDay(ZoneId.systemDefault())
-                                        .toInstant()
-                                        .toEpochMilli()
-                                    onDateOfBirthChanged(millis)
-                                },
-                                calendar.get(Calendar.YEAR),
-                                calendar.get(Calendar.MONTH),
-                                calendar.get(Calendar.DAY_OF_MONTH)
-                            ).show()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val calendar = Calendar.getInstance()
+                        if (dateOfBirthMillis > 0L) {
+                            calendar.timeInMillis = dateOfBirthMillis
+                        } else {
+                            calendar.add(Calendar.YEAR, -16)
                         }
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f, fill = false),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "Select DOB",
-                            tint = ElectricEmerald,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = DateUtils.formatDate(dateOfBirthMillis),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextWhite
-                        )
-                    }
 
-                    // Age Status Chip
-                    if (dateOfBirthMillis > 0L) {
-                        SuggestionChip(
-                            onClick = {},
-                            label = {
-                                Text(
-                                    text = if (isMinor) {
-                                        if (language == Language.TAMIL) "$calculatedAge வயது (இளம்பருவம்)" else "Age $calculatedAge (Minor)"
-                                    } else {
-                                        if (language == Language.TAMIL) "$calculatedAge வயது (முதியவர்)" else "Age $calculatedAge (Adult)"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                val localDate = LocalDate.of(year, month + 1, dayOfMonth)
+                                val millis = localDate.atStartOfDay(ZoneId.systemDefault())
+                                    .toInstant()
+                                    .toEpochMilli()
+                                onDateOfBirthChanged(millis)
                             },
-                            icon = {
-                                Icon(
-                                    imageVector = if (isMinor) Icons.Default.Warning else Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = if (isMinor) WarmAmber else ElectricEmerald,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = if (isMinor) CardNavyElevated else DeepNavy,
-                                labelColor = if (isMinor) WarmAmber else ElectricEmerald
-                            ),
-                            border = BorderStroke(
-                                1.dp,
-                                if (isMinor) WarmAmber else ElectricEmerald
-                            )
-                        )
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        ).show()
                     }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Select DOB",
+                        tint = ElectricEmerald,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = DateUtils.formatDate(dateOfBirthMillis),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextWhite
+                    )
+                }
+
+                // Age Status Badge
+                if (dateOfBirthMillis > 0L) {
+                    LiquidGlassPill(
+                        text = if (isMinor) {
+                            if (language == Language.TAMIL) "$calculatedAge வயது (இளம்பருவம்)" else "Age $calculatedAge (Minor)"
+                        } else {
+                            if (language == Language.TAMIL) "$calculatedAge வயது (முதியவர்)" else "Age $calculatedAge (Adult)"
+                        },
+                        isSelected = true,
+                        tintColor = if (isMinor) WarmAmber else ElectricEmerald
+                    )
                 }
             }
         }
@@ -240,9 +216,11 @@ fun Step2ProfileDetails(
                     focusedTextColor = TextWhite,
                     unfocusedTextColor = TextWhite,
                     focusedBorderColor = ElectricEmerald,
-                    unfocusedBorderColor = BorderDark,
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.20f),
                     focusedLabelColor = ElectricEmerald,
-                    unfocusedLabelColor = TextGray
+                    unfocusedLabelColor = TextGray,
+                    focusedContainerColor = Color(0x181C2541),
+                    unfocusedContainerColor = Color(0x101C2541)
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -273,32 +251,18 @@ fun Step2ProfileDetails(
                 style = MaterialTheme.typography.titleSmall,
                 color = ElectricEmerald
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Sport.entries.forEach { sport ->
                     val isSelected = sport == selectedSport
-                    FilterChip(
-                        selected = isSelected,
+                    LiquidGlassPill(
+                        text = sport.getDisplayName(language),
+                        isSelected = isSelected,
+                        tintColor = ElectricEmerald,
                         onClick = { onSportChanged(sport) },
-                        label = {
-                            Text(
-                                text = sport.getDisplayName(language),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ElectricEmerald,
-                            selectedLabelColor = DeepNavy,
-                            containerColor = CardNavy,
-                            labelColor = TextWhite
-                        ),
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) ElectricEmerald else BorderDark
-                        ),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -312,7 +276,7 @@ fun Step2ProfileDetails(
                 style = MaterialTheme.typography.titleSmall,
                 color = ElectricEmerald
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -321,25 +285,11 @@ fun Step2ProfileDetails(
                 val availablePositions = PlayingPosition.positionsFor(selectedSport)
                 availablePositions.forEach { pos ->
                     val isSelected = pos.id == selectedPosition
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { onPositionChanged(pos.id) },
-                        label = {
-                            Text(
-                                text = pos.getDisplayName(language),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ElectricEmerald,
-                            selectedLabelColor = DeepNavy,
-                            containerColor = CardNavy,
-                            labelColor = TextWhite
-                        ),
-                        border = BorderStroke(
-                            1.dp,
-                            if (isSelected) ElectricEmerald else BorderDark
-                        )
+                    LiquidGlassPill(
+                        text = pos.getDisplayName(language),
+                        isSelected = isSelected,
+                        tintColor = ElectricEmerald,
+                        onClick = { onPositionChanged(pos.id) }
                     )
                 }
             }
